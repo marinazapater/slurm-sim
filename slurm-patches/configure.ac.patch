@@ -1,0 +1,24 @@
+--- ../../repo/slurm/configure.ac	2013-08-28 18:04:00.402702481 +0200
++++ configure.ac	2012-11-29 16:41:55.000000000 +0100
+@@ -299,6 +299,13 @@
+ fi
+ AC_SUBST(SLURM_PREFIX)
+ 
++
++
++dnl Check for file src/simulation_lib/slurm_sim.h
++dnl
++X_AC_SLURM_SIMULATION
++
++
+ dnl check for whether to include IBM NRT (Network Resource Table) support
+ dnl
+ X_AC_NRT
+@@ -439,6 +446,7 @@
+ 		 src/sbatch/Makefile
+ 		 src/sattach/Makefile
+ 		 src/sdiag/Makefile
++		 src/simulation_lib/Makefile
+ 		 src/sprio/Makefile
+ 		 src/srun/Makefile
+ 		 src/srun/libsrun/Makefile
