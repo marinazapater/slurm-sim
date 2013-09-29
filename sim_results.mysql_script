@@ -1,0 +1,23 @@
+#
+# Use this for input date to mysql command
+#
+# Change XXX to your cluster name
+#
+#
+
+
+use slurm_acct_db
+select count(*) from perfdevel_job_table;
+
+# Max number of jobs started in a specific second (TOP 10)
+select time_start,count(*) from perfdevel_job_table group by time_start order by count(*) desc LIMIT 10;
+
+# Max number of jobs finished in a specific second (TOP 10)
+select time_end,count(*) from perfdevel_job_table group by time_end order by count(*) desc LIMIT 10;
+
+# Max number of jobs with same cpus allocated (TOP 10);
+select count(*),cpus_req from perfdevel_job_table group by cpus_req order by count(*) desc LIMIT 10;
+
+# Queued Time Average by qos
+select AVG(time_start - time_submit),qos_table.name from perfdevel_job_table,qos_table where time_start > 0 and id_qos=qos_table.id group by qos_table.name;
+

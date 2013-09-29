@@ -1,0 +1,23 @@
+It seems using a VM for running the simulator is an option really interesting.
+
+Next some steps for installing the Slurm simulator on a Ubuntu-12.04.1 Linux system.
+
+This has been tested under VMware.
+
+1) Get the DVD ISO image for Ubuntu-12.04.1
+2) Using VMware, create a new virtual machines using the ISO image previously downloaded
+	- Use user 'tester' with password 'slurm' as the default user
+
+3) Once you have the VM running the Ubuntu after installation, you need to install these packages:
+
+	you can get root being user 'tester' just doing a sudo bash with 'tester' password
+
+	apt-get install mysql-server-5.5 (use user 'root' with password 'slurm' for mysql user)
+	apt-get install libmysqlclient-dev
+	apt-get install libssl-dev
+	apt-get install libhwloc-dev
+
+
+4) As user tester, Create a directory named SIMULATOR on your home directory
+
+5) As user tester, copy file sim_test_dir.tar.bz2 to the SIMULATOR directory of your Linux running in the VM and follow instructions from the INSTALL file found inside the tar file.

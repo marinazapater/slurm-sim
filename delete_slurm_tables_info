@@ -1,0 +1,6 @@
+use slurm_acct_db;
+delete from perfdevel_job_table;
+delete from perfdevel_step_table;
+delete from perfdevel_usage_hour_table;
+delete from perfdevel_usage_day_table;
+delete from perfdevel_event_table;
