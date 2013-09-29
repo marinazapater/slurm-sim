@@ -1,0 +1,121 @@
+*** slurm/src/common/slurm_protocol_pack.c	2013-08-28 17:53:50.775318037 +0200
+--- ../sim_test_dir/slurm/src/common/slurm_protocol_pack.c	2012-11-29 13:09:29.000000000 +0100
+***************
+*** 623,628 ****
+--- 623,633 ----
+  static int _unpack_ping_slurmd_resp(ping_slurmd_resp_msg_t **msg_ptr,
+  				    Buf buffer, uint16_t protocol_version);
+  
++ static void _pack_sim_job_msg(sim_job_msg_t *msg, Buf buffer);
++ static void _pack_sim_helper_msg(sim_helper_msg_t *msg, Buf buffer);
++ static int  _unpack_sim_job_msg(sim_job_msg_t **msg_ptr, Buf buffer);
++ static int  _unpack_sim_helper_msg(sim_helper_msg_t **msg_ptr, Buf buffer);
++ 
+  /* pack_header
+   * packs a slurm protocol header that precedes every slurm message
+   * IN header - the header structure to pack
+***************
+*** 951,956 ****
+--- 956,970 ----
+  		_pack_signal_job_msg((signal_job_msg_t *) msg->data, buffer,
+  				     msg->protocol_version);
+  		break;
++ 
++ 	case REQUEST_SIM_JOB:
++ 		_pack_sim_job_msg((sim_job_msg_t *)msg->data, buffer);
++ 		break;
++ 
++ 	case MESSAGE_SIM_HELPER_CYCLE:
++ 		_pack_sim_helper_msg((sim_helper_msg_t *)msg->data, buffer);
++ 		break;
++ 
+  	case REQUEST_ABORT_JOB:
+  	case REQUEST_KILL_PREEMPTED:
+  	case REQUEST_KILL_TIMELIMIT:
+***************
+*** 1518,1523 ****
+--- 1532,1545 ----
+  					    buffer,
+  					    msg->protocol_version);
+  		break;
++ 	case REQUEST_SIM_JOB:
++ 		_unpack_sim_job_msg((sim_job_msg_t **)&msg->data, buffer);
++ 		break;
++ 
++ 	case MESSAGE_SIM_HELPER_CYCLE:
++ 		_unpack_sim_helper_msg((sim_helper_msg_t **)&msg->data, buffer);
++ 		break;
++ 
+  	case REQUEST_ABORT_JOB:
+  	case REQUEST_KILL_PREEMPTED:
+  	case REQUEST_KILL_TIMELIMIT:
+***************
+*** 9176,9181 ****
+--- 9198,9218 ----
+  	pack32(msg->job_id,  buffer);
+  }
+  
++ static void _pack_sim_job_msg(sim_job_msg_t *msg, Buf buffer)
++ {
++ 	xassert ( msg != NULL );
++ 
++ 	pack32((uint32_t)msg->duration, buffer ) ;
++ 	pack32((uint32_t)msg->job_id,  buffer ) ;
++ }
++ 
++ static void _pack_sim_helper_msg(sim_helper_msg_t *msg, Buf buffer)
++ {
++ 	xassert ( msg != NULL );
++ 
++ 	pack32((uint32_t)msg->total_jobs_ended, buffer ) ;
++ }
++ 
+  static int  _unpack_suspend_msg(suspend_msg_t **msg_ptr, Buf buffer,
+  				uint16_t protocol_version)
+  {
+***************
+*** 9284,9289 ****
+--- 9321,9363 ----
+  	return SLURM_ERROR;
+  }
+  
++ static int  _unpack_sim_job_msg(sim_job_msg_t **msg_ptr, Buf buffer)
++ {
++ 	sim_job_msg_t * msg;
++ 	xassert ( msg_ptr != NULL );
++ 
++ 	msg = xmalloc ( sizeof (sim_job_msg_t) );
++ 	*msg_ptr = msg ;
++ 
++ 	safe_unpack32(&msg->duration ,      buffer ) ;
++ 	safe_unpack32(&msg->job_id  , buffer ) ;
++ 	return SLURM_SUCCESS;
++ 
++ unpack_error:
++     info("SIM: unpack_sim_job_msg error!\n");
++ 	*msg_ptr = NULL;
++ 	slurm_free_suspend_msg(msg);
++ 	return SLURM_ERROR;
++ }
++ 
++ static int  _unpack_sim_helper_msg(sim_helper_msg_t **msg_ptr, Buf buffer)
++ {
++ 	sim_helper_msg_t * msg;
++ 	xassert ( msg_ptr != NULL );
++ 
++ 	msg = xmalloc ( sizeof (sim_helper_msg_t) );
++ 	*msg_ptr = msg ;
++ 
++ 	safe_unpack32(&msg->total_jobs_ended ,      buffer ) ;
++ 	return SLURM_SUCCESS;
++ 
++ unpack_error:
++     info("SIM: unpack_sim_helper_msg error!\n");
++ 	*msg_ptr = NULL;
++ 	slurm_free_suspend_msg(msg);
++ 	return SLURM_ERROR;
++ }
++ 
+  static void
+  _pack_checkpoint_msg(checkpoint_msg_t *msg, Buf buffer,
+  		     uint16_t protocol_version)

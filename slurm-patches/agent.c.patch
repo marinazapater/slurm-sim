@@ -1,0 +1,67 @@
+*** slurm/src/slurmctld/agent.c	2013-08-28 17:53:51.943293881 +0200
+--- ../sim_test_dir/slurm/src/slurmctld/agent.c	2012-11-29 15:18:20.000000000 +0100
+***************
+*** 350,355 ****
+--- 350,357 ----
+  	pthread_cond_broadcast(&agent_cnt_cond);
+  	slurm_mutex_unlock(&agent_cnt_mutex);
+  
++ 	pthread_exit(NULL);
++ 
+  	return NULL;
+  }
+  
+***************
+*** 519,525 ****
+   * IN args - pointer to agent_info_t with info on threads to watch
+   * Sleep between polls with exponential times (from 0.125 to 1.0 second)
+   */
+! static void *_wdog(void *args)
+  {
+  	bool srun_agent = false;
+  	int i;
+--- 521,527 ----
+   * IN args - pointer to agent_info_t with info on threads to watch
+   * Sleep between polls with exponential times (from 0.125 to 1.0 second)
+   */
+! void *_wdog(void *args)
+  {
+  	bool srun_agent = false;
+  	int i;
+***************
+*** 550,556 ****
+--- 552,562 ----
+  		thd_comp.retry_cnt   = 0;   /* assume no required retries */
+  		thd_comp.now         = time(NULL);
+  
++ #ifndef SLURM_SIMULATOR
+  		usleep(usec);
++ #else
++ 		sleep(1);
++ #endif
+  		usec = MIN((usec * 2), 1000000);
+  
+  		slurm_mutex_lock(&agent_ptr->thread_mutex);
+***************
+*** 595,600 ****
+--- 601,609 ----
+  		debug2("agent maximum delay %d seconds", thd_comp.max_delay);
+  
+  	slurm_mutex_unlock(&agent_ptr->thread_mutex);
++ 
++ 	pthread_exit(NULL);
++ 
+  	return (void *) NULL;
+  }
+  
+***************
+*** 1034,1039 ****
+--- 1043,1050 ----
+  	(*threads_active_ptr)--;
+  	pthread_cond_signal(thread_cond_ptr);
+  	slurm_mutex_unlock(thread_mutex_ptr);
++ 
++ 	pthread_exit(NULL);
+  	return (void *) NULL;
+  }
+  

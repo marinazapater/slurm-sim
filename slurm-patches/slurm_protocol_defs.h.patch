@@ -1,0 +1,33 @@
+*** slurm/src/common/slurm_protocol_defs.h	2013-08-28 17:53:50.775318037 +0200
+--- ../sim_test_dir/slurm/src/common/slurm_protocol_defs.h	2012-11-29 13:03:29.000000000 +0100
+***************
+*** 273,278 ****
+--- 273,281 ----
+  	REQUEST_CHECKPOINT_COMP,
+  	REQUEST_CHECKPOINT_TASK_COMP,
+  	RESPONSE_CHECKPOINT_COMP,
++ 	REQUEST_SIM_JOB,
++ 	RESPONSE_SIM_JOB,
++ 	MESSAGE_SIM_HELPER_CYCLE,
+  	REQUEST_SUSPEND,
+  	RESPONSE_SUSPEND,
+  	REQUEST_STEP_COMPLETE,
+***************
+*** 985,990 ****
+--- 988,1003 ----
+  } spank_env_responce_msg_t;
+  
+  typedef struct slurm_ctl_conf slurm_ctl_conf_info_msg_t;
++ 
++ typedef struct sim_job_msg {
++ 	uint32_t job_id;
++ 	uint32_t duration;
++ } sim_job_msg_t;
++ 
++ typedef struct sim_helper_msg {
++ 	uint32_t total_jobs_ended;
++ } sim_helper_msg_t;
++ 
+  /*****************************************************************************\
+   *	SLURM MESSAGE INITIALIZATION
+  \*****************************************************************************/

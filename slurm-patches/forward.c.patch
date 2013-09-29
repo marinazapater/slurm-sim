@@ -1,0 +1,13 @@
+*** slurm/src/common/forward.c	2013-08-28 18:04:00.426701984 +0200
+--- ../sim_test_dir/slurm/src/common/forward.c	2012-11-29 12:57:14.000000000 +0100
+***************
+*** 383,388 ****
+--- 383,390 ----
+  
+  	_destroy_tree_fwd(fwd_tree);
+  
++ 	pthread_exit(NULL);
++ 
+  	return NULL;
+  }
+  

@@ -1,0 +1,18 @@
+*** slurm/src/common/slurm_jobacct_gather.c	2013-08-28 18:07:00.834965846 +0200
+--- ../sim_test_dir/slurm/src/common/slurm_jobacct_gather.c	2013-02-22 09:55:01.000000000 +0100
+***************
+*** 821,826 ****
+--- 821,833 ----
+  				_pack_jobacct_id(NULL, rpc_version, buffer);
+  			return;
+  		}
++ #ifdef SLURM_SIMULATOR
++ 			for (i = 0; i < 14; i++)
++ 				pack32((uint32_t) 0, buffer);
++ 			for (i = 0; i < 4; i++)
++ 				_pack_jobacct_id(NULL, rpc_version, buffer);
++ 			return;
++ #endif
+  
+  		pack32((uint32_t)jobacct->user_cpu_sec, buffer);
+  		pack32((uint32_t)jobacct->user_cpu_usec, buffer);

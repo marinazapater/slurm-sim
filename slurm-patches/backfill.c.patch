@@ -1,0 +1,85 @@
+*** slurm/src/plugins/sched/backfill/backfill.c	2013-08-28 18:07:00.838965763 +0200
+--- ../sim_test_dir/slurm/src/plugins/sched/backfill/backfill.c	2012-11-29 16:51:09.000000000 +0100
+***************
+*** 358,370 ****
+  
+  static void _my_sleep(int secs)
+  {
+! 	struct timespec ts = {0, 0};
+  
+  	ts.tv_sec = time(NULL) + secs;
+  	pthread_mutex_lock(&term_lock);
+  	if (!stop_backfill)
+  		pthread_cond_timedwait(&term_cond, &term_lock, &ts);
+! 	pthread_mutex_unlock(&term_lock);
+  }
+  
+  static void _load_config(void)
+--- 358,377 ----
+  
+  static void _my_sleep(int secs)
+  {
+! #ifndef SLURM_SIMULATOR
+! 	 struct timespec ts = {0, 0};
+  
+  	ts.tv_sec = time(NULL) + secs;
+  	pthread_mutex_lock(&term_lock);
+  	if (!stop_backfill)
+  		pthread_cond_timedwait(&term_cond, &term_lock, &ts);
+! 	pthread_mutex_unlock(&term_lock);*/
+! 	
+! 	/* For simulation purposes such a polite termintarion process is not necessary although it could be 
+! 	   implemented as sleep wrapper does. By now just using a simple call to sleep here. */
+! #else
+! 	sleep(secs);
+! #endif
+  }
+  
+  static void _load_config(void)
+***************
+*** 530,535 ****
+--- 537,545 ----
+  	uint32_t *uid = NULL, nuser = 0;
+  	uint16_t *njobs = NULL;
+  	bool already_counted;
++ #ifdef SLURM_SIMULATOR
++ 	int local_loops;
++ #endif
+  
+  #ifdef HAVE_CRAY
+  	/*
+***************
+*** 767,773 ****
+--- 777,787 ----
+  		resv_bitmap = bit_copy(avail_bitmap);
+  		bit_not(resv_bitmap);
+  
++ #ifndef SLURM_SIMULATOR
+  		if ((time(NULL) - sched_start) >= this_sched_timeout) {
++ #else
++ 		if (local_loops == 20) {
++ #endif
+  			uint32_t save_time_limit = job_ptr->time_limit;
+  			job_ptr->time_limit = orig_time_limit;
+  			if (debug_flags & DEBUG_FLAG_BACKFILL) {
+***************
+*** 785,796 ****
+--- 799,816 ----
+  				rc = 1;
+  				break;
+  			}
++ #ifdef SLURM_SIMULATOR
++ 			local_loops = 0;
++ #endif
+  			job_ptr->time_limit = save_time_limit;
+  			/* Reset backfill scheduling timers, resume testing */
+  			sched_start = time(NULL);
+  			job_test_count = 0;
+  			START_TIMER;
+  		}
++ #ifdef SLURM_SIMULATOR
++ 		local_loops++;
++ #endif
+  		/* this is the time consuming operation */
+  		debug2("backfill: entering _try_sched for job %u.",
+  		       job_ptr->job_id);

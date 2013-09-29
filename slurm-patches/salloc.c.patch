@@ -1,0 +1,19 @@
+*** slurm/src/salloc/salloc.c	2013-08-28 18:07:00.842965680 +0200
+--- ../sim_test_dir/slurm/src/salloc/salloc.c	2012-11-29 11:56:55.000000000 +0100
+***************
+*** 813,819 ****
+  {
+  	allocation_interrupted = true;
+  	if (pending_job_id != 0) {
+! 		slurm_complete_job(pending_job_id, 0);
+  	}
+  }
+  
+--- 813,819 ----
+  {
+  	allocation_interrupted = true;
+  	if (pending_job_id != 0) {
+! 		slurm_complete_job(pending_job_id, NO_VAL);
+  	}
+  }
+  

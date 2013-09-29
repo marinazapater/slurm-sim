@@ -1,0 +1,53 @@
+*** slurm/src/common/slurm_protocol_defs.c	2013-08-28 18:07:00.834965846 +0200
+--- ../sim_test_dir/slurm/src/common/slurm_protocol_defs.c	2012-11-29 13:01:55.000000000 +0100
+***************
+*** 155,161 ****
+  	/* make a buffer 2 times the size just to be safe */
+  	copy = dup = xmalloc((2 * len) + 1);
+  	if (copy)
+! 		do if (*str == '\'' || *str == '"')
+  			   *dup++ = '\\';
+  		while ((*dup++ = *str++));
+  
+--- 155,161 ----
+  	/* make a buffer 2 times the size just to be safe */
+  	copy = dup = xmalloc((2 * len) + 1);
+  	if (copy)
+! 		do if (*str == '\\' || *str == '\'' || *str == '"')
+  			   *dup++ = '\\';
+  		while ((*dup++ = *str++));
+  
+***************
+*** 648,653 ****
+--- 648,663 ----
+  	}
+  }
+  
++ void inline slurm_free_sim_job_msg(sim_job_msg_t *msg)
++ {
++ 	xfree(msg);
++ }
++ 
++ void inline slurm_free_sim_helper_msg(sim_helper_msg_t *msg)
++ {
++ 	xfree(msg);
++ }
++ 
+  extern void slurm_free_signal_job_msg(signal_job_msg_t * msg)
+  {
+  	xfree(msg);
+***************
+*** 2528,2533 ****
+--- 2538,2549 ----
+  	case REQUEST_FRONT_END_INFO:
+  		slurm_free_front_end_info_request_msg(data);
+  		break;
++ 	case REQUEST_SIM_JOB:
++ 		slurm_free_sim_job_msg(data);
++ 		break;
++ 	case MESSAGE_SIM_HELPER_CYCLE:
++ 		slurm_free_sim_helper_msg(data);
++ 		break;
+  	case REQUEST_SUSPEND:
+  	case SRUN_REQUEST_SUSPEND:
+  		slurm_free_suspend_msg(data);

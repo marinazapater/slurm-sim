@@ -1,0 +1,264 @@
+*** slurm/src/slurmdbd/proc_req.c	2013-08-28 18:04:01.358682686 +0200
+--- ../sim_test_dir/slurm/src/slurmdbd/proc_req.c	2012-11-29 16:30:22.000000000 +0100
+***************
+*** 844,855 ****
+--- 844,857 ----
+  	dbd_rec_msg_t *rec_msg = NULL;
+  	char *comment = NULL;
+  
++ #ifndef SLURM_SIMULATOR
+  	if ((*uid != slurmdbd_conf->slurm_user_id && *uid != 0)) {
+  		comment = "DBD_ADD_RESV message from invalid uid";
+  		error("DBD_ADD_RESV message from invalid uid %u", *uid);
+  		rc = ESLURM_ACCESS_DENIED;
+  		goto end_it;
+  	}
++ #endif
+  	if (slurmdbd_unpack_rec_msg(&rec_msg, slurmdbd_conn->rpc_version,
+  				    DBD_ADD_RESV, in_buffer) != SLURM_SUCCESS) {
+  		comment = "Failed to unpack DBD_ADD_RESV message";
+***************
+*** 973,984 ****
+--- 975,988 ----
+  	int rc = SLURM_SUCCESS;
+  	char *comment = NULL;
+  
++ #ifndef SLURM_SIMULATOR
+  	if ((*uid != slurmdbd_conf->slurm_user_id && *uid != 0)) {
+  		comment = "DBD_CLUSTER_CPUS message from invalid uid";
+  		error("DBD_CLUSTER_CPUS message from invalid uid %u", *uid);
+  		rc = ESLURM_ACCESS_DENIED;
+  		goto end_it;
+  	}
++ #endif
+  	if (slurmdbd_unpack_cluster_cpus_msg(&cluster_cpus_msg,
+  					     slurmdbd_conn->rpc_version,
+  					     in_buffer) !=
+***************
+*** 1677,1688 ****
+--- 1681,1694 ----
+  	int rc = SLURM_SUCCESS;
+  	char *comment = NULL;
+  
++ #ifndef SLURM_SIMULATOR
+  	if ((*uid != slurmdbd_conf->slurm_user_id && *uid != 0)) {
+  		comment = "DBD_FLUSH_JOBS message from invalid uid";
+  		error("DBD_FLUSH_JOBS message from invalid uid %u", *uid);
+  		rc = ESLURM_ACCESS_DENIED;
+  		goto end_it;
+  	}
++ #endif
+  	if (slurmdbd_unpack_cluster_cpus_msg(
+  		    &cluster_cpus_msg, slurmdbd_conn->rpc_version, in_buffer)
+  	    != SLURM_SUCCESS) {
+***************
+*** 1791,1796 ****
+--- 1797,1803 ----
+  	int rc = SLURM_SUCCESS;
+  	char *comment = NULL;
+  
++ #ifndef SLURM_SIMULATOR
+  	if (*uid != slurmdbd_conf->slurm_user_id) {
+  		comment = "DBD_JOB_COMPLETE message from invalid uid";
+  		error("CONN:%u %s %u",
+***************
+*** 1798,1803 ****
+--- 1805,1811 ----
+  		rc = ESLURM_ACCESS_DENIED;
+  		goto end_it;
+  	}
++ #endif
+  	if (slurmdbd_unpack_job_complete_msg(
+  		    &job_comp_msg, slurmdbd_conn->rpc_version, in_buffer)
+  	    != SLURM_SUCCESS) {
+***************
+*** 1861,1866 ****
+--- 1869,1875 ----
+  	dbd_id_rc_msg_t id_rc_msg;
+  	char *comment = NULL;
+  
++ #ifndef SLURM_SIMULATOR
+  	if (*uid != slurmdbd_conf->slurm_user_id) {
+  		comment = "DBD_JOB_START message from invalid uid";
+  		error("CONN:%u %s %u",
+***************
+*** 1870,1875 ****
+--- 1879,1885 ----
+  					      DBD_JOB_START);
+  		return SLURM_ERROR;
+  	}
++ #endif
+  	if (slurmdbd_unpack_job_start_msg((void **)&job_start_msg,
+  					  slurmdbd_conn->rpc_version,
+  					  in_buffer) !=
+***************
+*** 1901,1906 ****
+--- 1911,1917 ----
+  	int rc = SLURM_SUCCESS;
+  	char *comment = NULL;
+  
++ #ifndef SLURM_SIMULATOR
+  	if (*uid != slurmdbd_conf->slurm_user_id) {
+  		comment = "DBD_JOB_SUSPEND message from invalid uid";
+  		error("CONN:%u %s %u",
+***************
+*** 1908,1913 ****
+--- 1919,1925 ----
+  		rc = ESLURM_ACCESS_DENIED;
+  		goto end_it;
+  	}
++ #endif
+  	if (slurmdbd_unpack_job_suspend_msg(&job_suspend_msg,
+  					    slurmdbd_conn->rpc_version,
+  					    in_buffer) != SLURM_SUCCESS) {
+***************
+*** 2494,2499 ****
+--- 2506,2512 ----
+  	dbd_rec_msg_t *rec_msg = NULL;
+  	char *comment = NULL;
+  
++ #ifndef SLURM_SIMULATOR
+  	if ((*uid != slurmdbd_conf->slurm_user_id && *uid != 0)) {
+  		comment = "DBD_MODIFY_RESV message from invalid uid";
+  		error("CONN:%u %s %u",
+***************
+*** 2501,2506 ****
+--- 2514,2520 ----
+  		rc = ESLURM_ACCESS_DENIED;
+  		goto end_it;
+  	}
++ #endif
+  	if (slurmdbd_unpack_rec_msg(&rec_msg, slurmdbd_conn->rpc_version,
+  				    DBD_MODIFY_RESV, in_buffer)
+  	    != SLURM_SUCCESS) {
+***************
+*** 2530,2535 ****
+--- 2544,2550 ----
+  	char *comment = NULL;
+  
+  
++ #ifndef SLURM_SIMULATOR
+  	if (*uid != slurmdbd_conf->slurm_user_id) {
+  		comment = "DBD_NODE_STATE message from invalid uid";
+  		error("CONN:%u %s %u",
+***************
+*** 2537,2542 ****
+--- 2552,2558 ----
+  		rc = ESLURM_ACCESS_DENIED;
+  		goto end_it;
+  	}
++ #endif
+  	if (slurmdbd_unpack_node_state_msg(&node_state_msg,
+  					   slurmdbd_conn->rpc_version,
+  					   in_buffer) !=
+***************
+*** 2685,2690 ****
+--- 2701,2707 ----
+  	slurmdb_cluster_rec_t cluster;
+  	dbd_list_msg_t list_msg;
+  
++ #ifndef SLURM_SIMULATOR
+  	if (*uid != slurmdbd_conf->slurm_user_id) {
+  		comment = "DBD_REGISTER_CTLD message from invalid uid";
+  		error("CONN:%u %s %u",
+***************
+*** 2692,2697 ****
+--- 2709,2715 ----
+  		rc = ESLURM_ACCESS_DENIED;
+  		goto end_it;
+  	}
++ #endif
+  	if (slurmdbd_unpack_register_ctld_msg(&register_ctld_msg,
+  					      slurmdbd_conn->rpc_version,
+  					      in_buffer) !=
+***************
+*** 3272,3283 ****
+--- 3290,3303 ----
+  	dbd_rec_msg_t *rec_msg = NULL;
+  	char *comment = NULL;
+  
++ #ifndef SLURM_SIMULATOR
+  	if ((*uid != slurmdbd_conf->slurm_user_id && *uid != 0)) {
+  		comment = "DBD_REMOVE_RESV message from invalid uid";
+  		error("DBD_REMOVE_RESV message from invalid uid %u", *uid);
+  		rc = ESLURM_ACCESS_DENIED;
+  		goto end_it;
+  	}
++ #endif
+  	if (slurmdbd_unpack_rec_msg(&rec_msg, slurmdbd_conn->rpc_version,
+  				    DBD_REMOVE_RESV,
+  				    in_buffer) != SLURM_SUCCESS) {
+***************
+*** 3347,3352 ****
+--- 3367,3373 ----
+  	dbd_job_start_msg_t *job_start_msg;
+  	dbd_id_rc_msg_t *id_rc_msg;
+  
++ #ifndef SLURM_SIMULATOR
+  	if (*uid != slurmdbd_conf->slurm_user_id) {
+  		comment = "DBD_SEND_MULT_JOB_START message from invalid uid";
+  		error("%s %u", comment, *uid);
+***************
+*** 3355,3360 ****
+--- 3376,3382 ----
+  					      DBD_SEND_MULT_JOB_START);
+  		return SLURM_ERROR;
+  	}
++ #endif
+  
+  	if (slurmdbd_unpack_list_msg(&get_msg, slurmdbd_conn->rpc_version,
+  				     DBD_SEND_MULT_JOB_START,
+***************
+*** 3401,3406 ****
+--- 3423,3429 ----
+  	Buf req_buf = NULL, ret_buf = NULL;
+  	int rc = SLURM_SUCCESS;
+  
++ #ifndef SLURM_SIMULATOR
+  	if (*uid != slurmdbd_conf->slurm_user_id) {
+  		comment = "DBD_SEND_MULT_MSG message from invalid uid";
+  		error("%s %u", comment, *uid);
+***************
+*** 3409,3414 ****
+--- 3432,3438 ----
+  					      DBD_SEND_MULT_MSG);
+  		return SLURM_ERROR;
+  	}
++ #endif
+  
+  	if (slurmdbd_unpack_list_msg(&get_msg, slurmdbd_conn->rpc_version,
+  				     DBD_SEND_MULT_MSG,
+***************
+*** 3457,3468 ****
+--- 3481,3494 ----
+  	int rc = SLURM_SUCCESS;
+  	char *comment = NULL;
+  
++ #ifndef SLURM_SIMULATOR
+  	if (*uid != slurmdbd_conf->slurm_user_id) {
+  		comment = "DBD_STEP_COMPLETE message from invalid uid";
+  		error("%s %u", comment, *uid);
+  		rc = ESLURM_ACCESS_DENIED;
+  		goto end_it;
+  	}
++ #endif
+  	if (slurmdbd_unpack_step_complete_msg(&step_comp_msg,
+  					      slurmdbd_conn->rpc_version,
+  					      in_buffer) !=
+***************
+*** 3530,3541 ****
+--- 3556,3569 ----
+  	int rc = SLURM_SUCCESS;
+  	char *comment = NULL;
+  
++ #ifndef SLURM_SIMULATOR
+  	if (*uid != slurmdbd_conf->slurm_user_id) {
+  		comment = "DBD_STEP_START message from invalid uid";
+  		error("%s %u", comment, *uid);
+  		rc = ESLURM_ACCESS_DENIED;
+  		goto end_it;
+  	}
++ #endif
+  	if (slurmdbd_unpack_step_start_msg(&step_start_msg,
+  					   slurmdbd_conn->rpc_version,
+  					   in_buffer) != SLURM_SUCCESS) {

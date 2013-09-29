@@ -1,0 +1,77 @@
+*** slurm/src/slurmctld/job_scheduler.c	2013-08-28 18:07:00.846965596 +0200
+--- ../sim_test_dir/slurm/src/slurmctld/job_scheduler.c	2012-11-29 15:37:16.000000000 +0100
+***************
+*** 1174,1179 ****
+--- 1174,1180 ----
+  	if (launch_msg_ptr == NULL)
+  		return;
+  
++ #ifndef SLURM_SIMULATOR
+  	agent_arg_ptr = (agent_arg_t *) xmalloc(sizeof(agent_arg_t));
+  	agent_arg_ptr->node_count = 1;
+  	agent_arg_ptr->retry = 0;
+***************
+*** 1184,1189 ****
+--- 1185,1223 ----
+  
+  	/* Launch the RPC via agent */
+  	agent_queue_request(agent_arg_ptr);
++ #else
++ 
++ 	{
++ 		slurm_msg_t msg, resp;
++ 		slurm_msg_t_init(&msg);
++ 		msg.msg_type = REQUEST_BATCH_JOB_LAUNCH;
++ 		msg.data = launch_msg_ptr;
++ 		info("SIM: sending message type REQUEST_BATCH_JOB_LAUNCH to %s\n", job_ptr->batch_host);
++ 			
++ 		if(slurm_conf_get_addr(job_ptr->batch_host, &msg.address) == SLURM_ERROR) {
++ 				error("SIM: "
++ 				      "can't find address for host %s, "
++ 				      "check slurm.conf",
++ 				      job_ptr->batch_host);
++ 		}
++ 
++ 		if (slurm_send_recv_node_msg(&msg, &resp, 5000000) != SLURM_SUCCESS) {
++ 				error("SIM: slurm_send_only_node_msg failed\n");
++ 		}
++ 
++ 		/* Let's free memory allocated */
++ 
++ 		if(launch_msg_ptr->environment){
++ 			xfree(launch_msg_ptr->environment[0]);
++ 			xfree(launch_msg_ptr->environment);
++ 		}
++ 
++ 		slurm_free_job_launch_msg(launch_msg_ptr);
++ 
++ 
++ 	}
++ #endif
++ 
+  }
+  
+  /*
+***************
+*** 2022,2027 ****
+--- 2056,2064 ----
+  	for (i=0; my_env[i]; i++)
+  		xfree(my_env[i]);
+  	xfree(my_env);
++ 
++ 	pthread_exit(NULL);
++ 
+  	return NULL;
+  }
+  
+***************
+*** 2187,2192 ****
+--- 2224,2231 ----
+  	unlock_slurmctld(config_read_lock);
+  	FREE_NULL_BITMAP(node_bitmap);
+  
++ 	pthread_exit(NULL);
++ 
+  	return NULL;
+  }
+  
