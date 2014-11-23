@@ -1,0 +1,13 @@
+use slurm_acct_db
+# Getting the average queue wait time 
+SELECT CEILING(AVG(time_start - time_submit)) AS avg_queue_time FROM perfdevel_job_table;
+# Getting the amount of running and waiting jobs per time
+SELECT a.sample, (SELECT COUNT(*) AS running FROM perfdevel_job_table WHERE
+time_start <= (1316242565 + (a.sample * 60)) AND time_end > (1316242565 +
+((a.sample + 1) * 60))) AS running, (SELECT COUNT(*) AS running FROM
+perfdevel_job_table WHERE time_submit <= (1316242565 + (a.sample * 60)) AND
+time_start > (1316242565 + ((a.sample + 1) * 60))) AS waiting  FROM (SELECT
+(id_job - 1000) AS sample FROM perfdevel_job_table WHERE id_job < (1001 +
+(SELECT (tmp.maxTime - tmp.minTime) AS samples FROM ( SELECT
+CEILING(MAX(time_end / 60)) AS maxTime, FLOOR(1316242565 / 60) AS minTime FROM
+perfdevel_job_table) tmp))) AS a GROUP BY sample ;

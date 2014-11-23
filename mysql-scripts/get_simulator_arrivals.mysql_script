@@ -1,0 +1,9 @@
+use slurm_acct_db
+
+SELECT a.sample, (SELECT COUNT(*) AS running FROM perfdevel_job_table WHERE
+time_submit >= (1316242565 + (a.sample * 600)) AND time_submit < (1316242565 +
+((a.sample + 1) * 600))) AS arrivals  FROM (SELECT (id_job - 1000) AS sample
+FROM perfdevel_job_table WHERE id_job < (1001 + (SELECT (tmp.maxTime -
+tmp.minTime) AS samples FROM ( SELECT CEILING(MAX(time_end / 600)) AS maxTime,
+FLOOR(1316242565 / 600) AS minTime FROM perfdevel_job_table) tmp))) AS a GROUP
+BY sample ;
