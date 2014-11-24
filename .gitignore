@@ -1,0 +1,8 @@
+### Vim + emacs files
+*.*~
+
+### Compiled files
+*.o
+*.lo
+*.la
+*.out
