@@ -40,7 +40,8 @@
 
 #include "comm_protocol.h"
 
-#define MAX_INDEPENDENT_THREADS 50
+//XXX-marina: this was set to 50 at the beginning
+#define MAX_INDEPENDENT_THREADS 500
 
 #define MONITOR_INTERVAL 300
 
@@ -347,12 +348,14 @@ static void *time_mgr(void *arg){
     int monitor_countdown;
 
     /* TODO: Submit should be more flexible. This is fine for Marenostrum usual job but it should cover all sbatch possibilities */
-    char *child_args[15] = { "", "--workdir=/tmp",
+    //XXX-marina making this compatible at least with trace_build_from_file
+    char *child_args[16] = { "", "--workdir=/tmp",
         "--error=/tmp/dumb", 
-        "--output=/tmp/dumb --job-name=test", 
+        "--output=/tmp/dumb",
         "", "", 
         "",
         "--no-requeue", 
+        "",
         "",
         "",
         "",
@@ -644,9 +647,9 @@ static void *time_mgr(void *arg){
                 sec = (trace_head->wclimit % 3600) % 60;
                 sprintf(child_args[9],"--time=%02d:%02d:%02d", hour,min,sec);
 
-                child_args[10] = malloc(100);
-                memset(child_args[10], '\0', 100);
-                sprintf(child_args[10],"--uid=%s", trace_head->username);
+                //child_args[10] = malloc(100);
+                //memset(child_args[10], '\0', 100);
+                //sprintf(child_args[10],"--uid=%s", trace_head->username);
 
                 child_args[11] = malloc(100);
                 memset(child_args[11], '\0', 100);
@@ -659,6 +662,14 @@ static void *time_mgr(void *arg){
                     sprintf(child_args[12],"--reservation=%s", trace_head->reservation);
                 else
                     sprintf(child_args[12],"--comment=using_normal_resources");
+
+                
+                if(strlen(trace_head->jobname)> 0){
+                    child_args[13] = malloc(100);
+                    memset(child_args[13], '\0', 100);
+                    sprintf(child_args[13], "--job-name=%s", trace_head->jobname);
+                    /*printf("Jobname is: %s \n", trace_head->jobname);*/
+                }
 
                 child = fork();
 
@@ -768,9 +779,8 @@ int init_trace_info(void *ptr, int op){
         count++;
 
         /* Next is hardcoded for Marenostrum node type */
-        new_trace_record->tasks_per_node = 4;
-
-        new_trace_record->cpus_per_task = 1;
+        //new_trace_record->tasks_per_node = 4;
+        //new_trace_record->cpus_per_task = 1;
 
 #if 0
         /* Lets make a busy queue from the beginning */
