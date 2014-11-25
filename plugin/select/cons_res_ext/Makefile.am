@@ -10,5 +10,8 @@ pkglib_LTLIBRARIES = select_cons_res_ext.la
 
 # Consumable resources node selection plugin.
 select_cons_res_ext_la_SOURCES =  select_cons_res_ext.c select_cons_res_ext.h \
+								dist_tasks.c dist_tasks.h \
+								extern_alloc.c extern_alloc.h \
 			      job_test_ext.c job_test_ext.h
 select_cons_res_ext_la_LDFLAGS = $(SO_LDFLAGS) $(PLUGIN_FLAGS)
+

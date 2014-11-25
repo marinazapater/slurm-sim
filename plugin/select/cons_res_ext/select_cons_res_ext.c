@@ -51,7 +51,7 @@
 
 #include "src/common/slurm_xlator.h"
 #include "select_cons_res_ext.h"
-#include "src/plugins/select/cons_res/dist_tasks.h"
+#include "dist_tasks.h"
 #include "job_test_ext.h"
 
 
@@ -1428,6 +1428,8 @@ static int _sort_usable_nodes_dec(struct job_record *job_a,
 }
 
 /* Allocate resources for a job now, if possible */
+//XXX-marina: main function responsible for allocation
+// (called just before job starts)
 static int _run_now(struct job_record *job_ptr, bitstr_t *bitmap,
 		    uint32_t min_nodes, uint32_t max_nodes,
 		    uint32_t req_nodes, uint16_t job_node_req,
@@ -1941,7 +1943,7 @@ extern int select_p_job_test(struct job_record *job_ptr, bitstr_t * bitmap,
 		_dump_state(select_part_record);
 	}
 	if (mode == SELECT_MODE_WILL_RUN) {
-		rc = _will_run_test(job_ptr, bitmap, min_nodes, max_nodes,
+        rc = _will_run_test(job_ptr, bitmap, min_nodes, max_nodes,
 				    req_nodes, job_node_req,
 				    preemptee_candidates, preemptee_job_list,
 				    exc_core_bitmap);
@@ -1949,6 +1951,7 @@ extern int select_p_job_test(struct job_record *job_ptr, bitstr_t * bitmap,
 		rc = _test_only(job_ptr, bitmap, min_nodes, max_nodes,
 				req_nodes, job_node_req);
 	} else if (mode == SELECT_MODE_RUN_NOW) {
+        // XXX-marina: jobs that will start executing if resources are available
 		rc = _run_now(job_ptr, bitmap, min_nodes, max_nodes,
 			      req_nodes, job_node_req,
 			      preemptee_candidates, preemptee_job_list,
@@ -1972,6 +1975,7 @@ extern int select_p_job_test(struct job_record *job_ptr, bitstr_t * bitmap,
 
 extern int select_p_job_begin(struct job_record *job_ptr)
 {
+    //TODO-marina: notify halt to slurm-sim
 	return SLURM_SUCCESS;
 }
 
@@ -2038,6 +2042,7 @@ extern int select_p_job_signal(struct job_record *job_ptr, int signal)
 
 extern int select_p_job_fini(struct job_record *job_ptr)
 {
+    //TODO-marina: notify halt to slurm-sim
 	xassert(job_ptr);
 	xassert(job_ptr->magic == JOB_MAGIC);
 

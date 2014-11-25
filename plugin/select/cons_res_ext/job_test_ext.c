@@ -102,9 +102,10 @@
 #endif
 #include <time.h>
 
-#include "src/plugins/select/cons_res/dist_tasks.h"
+#include "dist_tasks.h"
 #include "job_test_ext.h"
 #include "select_cons_res_ext.h"
+#include "extern_alloc.h"
 
 static int _eval_nodes(struct job_record *job_ptr, bitstr_t *node_map,
 			uint32_t min_nodes, uint32_t max_nodes,
@@ -1883,16 +1884,16 @@ static uint16_t *_select_nodes(struct job_record *job_ptr, uint32_t min_nodes,
 	int rc;
 	uint16_t *cpu_cnt, *cpus = NULL;
 	uint32_t start, n, a;
-	//char str[100];
+	char str[1000];
 	bitstr_t *req_map = job_ptr->details->req_node_bitmap;
 
 	if (bit_set_count(node_map) < min_nodes)
 		return NULL;
 
-	//bit_fmt(str, (sizeof(str) - 1), node_map);
-	//info("_select_nodes nodemap: %s", str);
-	//bit_fmt(str, (sizeof(str) - 1), core_map);
-	//info("_select_nodes coremap: %s", str);
+	/* bit_fmt(str, (sizeof(str) - 1), node_map); */
+	/* info("_select_nodes nodemap: %s", str); */
+	/* bit_fmt(str, (sizeof(str) - 1), core_map); */
+	/* info("_select_nodes coremap: %s", str); */
 
 	/* get resource usage for this job from each available node */
 	_get_res_usage(job_ptr, node_map, core_map, cr_node_cnt,
@@ -1951,7 +1952,7 @@ static uint16_t *_select_nodes(struct job_record *job_ptr, uint32_t min_nodes,
 	return cpus;
 }
 
-
+//TODO-marina: this is the important part that needs to be changed!!
 /* cr_job_test - does most of the real work for select_p_job_test(), which
  *	includes contiguous selection, load-leveling and max_share logic
  *
@@ -2038,8 +2039,10 @@ extern int cr_job_test(struct job_record *job_ptr, bitstr_t *bitmap,
 	}
 
 	orig_map = bit_copy(bitmap);
+    //XXX-marina: next function fills avail_cores bitmap
+    //(contains the cores that are available)
 	avail_cores = _make_core_bitmap(bitmap);
-
+    
 	/* test to make sure that this job can succeed with all avail_cores
 	 * if 'no' then return FAIL
 	 * if 'yes' then we will seek the optimal placement for this job
@@ -2117,11 +2120,10 @@ extern int cr_job_test(struct job_record *job_ptr, bitstr_t *bitmap,
 	 *         partitions.
 	 */
 
-
 	/*** Step 1 ***/
 	bit_copybits(bitmap, orig_map);
-	bit_copybits(free_cores, avail_cores);
-
+	bit_copybits(free_cores, avail_cores);   
+        
 	if (exc_core_bitmap) {
 		int exc_core_size  = bit_size(exc_core_bitmap);
 		int free_core_size = bit_size(free_cores);
@@ -2161,6 +2163,25 @@ extern int cr_job_test(struct job_record *job_ptr, bitstr_t *bitmap,
 			bit_and(free_cores, tmpcore);
 		}
 	}
+
+    //XXX-marina: We have enough available cores, and free_cores has the needed info
+    // I am calling external allocator here
+    // (before going for cons_res regular allocation)
+    // In case it fails, I'll use cons_res
+    info(" cons_res_ext: cr_job_test: calling external allocator");
+    cpu_count = external_allocator (job_ptr, min_nodes, max_nodes, req_nodes,
+                                    bitmap, cr_node_cnt, free_cores,
+                                    node_usage, cr_type, test_only);
+    if ((cpu_count) && (job_ptr->best_switch)) {
+		/* External allocator found a good job fit! We're done. */
+		if (select_debug_flags & DEBUG_FLAG_CPU_BIND) {
+			info(" cons_res_ext: cr_job_test: test 1 pass - "
+			     "idle resources found");
+		}
+		goto alloc_job;
+	}
+    
+    info("  const_res_ext: cr_job_test: external allocator failed --> Step1 of cons_res alloc");
 	cpu_count = _select_nodes(job_ptr, min_nodes, max_nodes, req_nodes,
 				  bitmap, cr_node_cnt, free_cores,
 				  node_usage, cr_type, test_only);
@@ -2244,7 +2265,11 @@ extern int cr_job_test(struct job_record *job_ptr, bitstr_t *bitmap,
 		info("cons_res: cr_job_test: test 2 pass - "
 		     "available resources for this priority");
 	}
-
+    
+    //XXX-marina: We now we have enough available cores
+    // I print bitmap as a first step to call other program
+    extalloc_print_job_bitmap(free_cores);
+    
 	/*** Step 3 ***/
 	bit_copybits(bitmap, orig_map);
 	bit_copybits(free_cores, avail_cores);
@@ -2400,7 +2425,10 @@ alloc_job:
 	 * - a free_cores bitmap of usable cores on each selected node
 	 * - a per-alloc-node cpu_count array
 	 */
-
+    info("Printing final allocation: selected nodes (bitmap) and free_cores");
+    extalloc_print_job_bitmap(bitmap);
+    extalloc_print_job_bitmap(free_cores);
+    
 	if ((mode != SELECT_MODE_WILL_RUN) && (job_ptr->part_ptr == NULL))
 		error_code = EINVAL;
 	if ((error_code == SLURM_SUCCESS) && (mode == SELECT_MODE_WILL_RUN)) {
@@ -2420,6 +2448,7 @@ alloc_job:
 		     job_ptr->job_id);
 	}
 
+    //XXX-marina: good place to update duration of job and/or end_time
 	/** create the struct_job_res  **/
 	job_res                   = create_job_resources();
 	job_res->node_bitmap      = bit_copy(bitmap);
