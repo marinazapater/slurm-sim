@@ -44,6 +44,7 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
 {
     int rc = SLURM_ERROR;
     char *nodes;
+    char str[1000];
     uint16_t *cpu_cnt, *cpus = NULL;
     uint32_t start, n, a;
     
@@ -51,29 +52,30 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
     extalloc_print_job_bitmap(core_map);
     nodes = bitmap2node_name(node_map);
     info("external_allocator: non-free nodes %s", nodes);
+    sprintf(str, "./external_allocator.sh %s", nodes);
+    rc = system(str);
+    info("Hi");
     
-    rc = system("echo \"hola\" > /tmp/hola.txt");
-
-    /* if successful, sync up the core_map with the node_map, and
-	 * create a cpus array */
-	/* if (rc == SLURM_SUCCESS) { */
-	/* 	cpus = xmalloc(bit_set_count(node_map) * sizeof(uint16_t)); */
-	/* 	start = 0; */
-	/* 	a = 0; */
-	/* 	for (n = 0; n < cr_node_cnt; n++) { */
-	/* 		if (bit_test(node_map, n)) { */
-	/* 			cpus[a++] = cpu_cnt[n]; */
-	/* 			if (cr_get_coremap_offset(n) != start) { */
-	/* 				bit_nclear(core_map, start, */
-	/* 					   (cr_get_coremap_offset(n))-1); */
-	/* 			} */
-	/* 			start = cr_get_coremap_offset(n + 1); */
-	/* 		} */
-	/* 	} */
-	/* 	if (cr_get_coremap_offset(n) != start) { */
-	/* 		bit_nclear(core_map, start, cr_get_coremap_offset(n)-1); */
-	/* 	} */
-	/* } */
+    /* if successful, sync up the core_map with the node_map, and */
+	/* create a cpus array */
+	if (rc == SLURM_SUCCESS) {
+		cpus = xmalloc(bit_set_count(node_map) * sizeof(uint16_t));
+		start = 0;
+		a = 0;
+		for (n = 0; n < cr_node_cnt; n++) {
+			if (bit_test(node_map, n)) {
+				cpus[a++] = cpu_cnt[n];
+				if (cr_get_coremap_offset(n) != start) {
+					bit_nclear(core_map, start,
+						   (cr_get_coremap_offset(n))-1);
+				}
+				start = cr_get_coremap_offset(n + 1);
+			}
+		}
+		if (cr_get_coremap_offset(n) != start) {
+			bit_nclear(core_map, start, cr_get_coremap_offset(n)-1);
+		}
+	}
     
     return NULL;
 }
