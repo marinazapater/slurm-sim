@@ -1,3 +1,7 @@
+/*******************************************************
+ * SLURM simulator launcher code
+ *******************************************************/
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -354,7 +358,7 @@ static void *time_mgr(void *arg){
         "--output=/tmp/dumb",
         "", "", 
         "",
-        "--no-requeue --exclusive --comment=hola", 
+        "--no-requeue", 
         "",
         "",
         "",
@@ -647,10 +651,6 @@ static void *time_mgr(void *arg){
                 sec = (trace_head->wclimit % 3600) % 60;
                 sprintf(child_args[9],"--time=%02d:%02d:%02d", hour,min,sec);
 
-                //child_args[10] = malloc(100);
-                //memset(child_args[10], '\0', 100);
-                //sprintf(child_args[10],"--uid=%s", trace_head->username);
-
                 child_args[11] = malloc(100);
                 memset(child_args[11], '\0', 100);
                 sprintf(child_args[11],"--qos=%s", trace_head->qosname);
@@ -660,8 +660,15 @@ static void *time_mgr(void *arg){
 
                 if(strlen(trace_head->reservation)> 0)
                     sprintf(child_args[12],"--reservation=%s", trace_head->reservation);
-                else
-                    sprintf(child_args[12],"--comment=using_normal_resources");
+                
+                if (strlen(trace_head->comment) > 0)
+                    sprintf(child_args[12],"--comment=%s", trace_head->comment);
+
+                //child_args[10] = malloc(100);
+                //memset(child_args[10], '\0', 100);
+                //sprintf(child_args[10],"--uid=%s", trace_head->username);
+                if (trace_head->exclusive)
+                    sprintf(child_args[10],"--comment=%s", trace_head->comment)
 
                 
                 if(strlen(trace_head->jobname)> 0){

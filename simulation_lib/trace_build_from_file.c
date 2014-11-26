@@ -103,7 +103,7 @@ int main(int argc, char *argv[]){
 		while(1){
 		  	char_pos = 0;
 			name = malloc(30);
-			while(1){
+            while(1){
 				if(read(userfile, &name[char_pos], 1) <= 0){
 					endfile = 1;
 					break;
@@ -189,6 +189,12 @@ int main(int argc, char *argv[]){
                 new_trace.cpus_per_task =  atoi(strtok (NULL, " \t\n"));
                 //tasks_per_node
                 new_trace.tasks_per_node =  atoi(strtok (NULL, " \t\n"));
+                
+                //XXX-marina: changes here
+                //exclusivity (shared vs exclusive)
+                new_trace.exclusive = atoi(strtok (NULL, " \t\n"));
+                //comment
+                sprintf(new_trace.comment, "%s", strtok (NULL, " \t\n"));
 
                 written = write(trace_file, &new_trace, sizeof(job_trace_t));
 
