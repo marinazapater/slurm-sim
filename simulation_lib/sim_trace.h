@@ -14,6 +14,7 @@ typedef struct job_trace{
     char qosname[MAX_QOSNAME];
     char partition[MAX_QOSNAME];
     char account[MAX_QOSNAME];
+    char jobname [MAX_USERNAME_LEN];
     int cpus_per_task;
     int tasks_per_node;
     char reservation[MAX_RSVNAME];

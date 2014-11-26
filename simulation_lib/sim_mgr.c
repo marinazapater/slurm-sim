@@ -354,7 +354,7 @@ static void *time_mgr(void *arg){
         "--output=/tmp/dumb",
         "", "", 
         "",
-        "--no-requeue", 
+        "--no-requeue --exclusive --comment=hola", 
         "",
         "",
         "",
@@ -626,7 +626,7 @@ static void *time_mgr(void *arg){
                 /* First some parameters updates using job trace information */
                 child_args[8] = malloc(100);
                 memset(child_args[8], '\0', 100);
-                sprintf(child_args[8], "--ntasks=%d", trace_head->tasks);
+                sprintf(child_args[8], "--ntasks-per-node=%d", trace_head->tasks);
 
                 child_args[4] = malloc(100);
                 memset(child_args[4], '\0', 100);

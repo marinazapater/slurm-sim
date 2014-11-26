@@ -24,8 +24,10 @@
 #include <execinfo.h>
 
 //#define LIBC_PATH  "/lib64/libc.so.6"
-#define LIBC_PATH  "/lib/x86_64-linux-gnu/libc.so.6"
-#define LIBPTHREAD_PATH "/lib/x86_64-linux-gnu/libpthread.so.0"
+#define LIBC_PATH  "/lib/i386-linux-gnu/libc.so.6"
+#define LIBPTHREAD_PATH "/lib/i386-linux-gnu/libpthread.so.0"
+//#define LIBC_PATH  "/lib/x86_64-linux-gnu/libc.so.6"
+//#define LIBPTHREAD_PATH "/lib/x86_64-linux-gnu/libpthread.so.0"
 
 #undef DEBUG
 //#define DEBUG
@@ -217,6 +219,8 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start)
             break;
         err++;
         pthread_yield();
+        //XXX-marina: I changes the err=1000 by a higher number, as I have very long
+        //bursts
         if(err == 1000){
             printf("WARNING: pthread_create wrapper returning EAGAIN!!!\n");
             proto_threads[0]--;
