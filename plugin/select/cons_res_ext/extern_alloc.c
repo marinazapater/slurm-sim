@@ -52,7 +52,8 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
     extalloc_print_job_bitmap(core_map);
     nodes = bitmap2node_name(node_map);
     info("external_allocator: non-free nodes %s", nodes);
-    sprintf(str, "./external_allocator.sh %s", nodes);
+    info("external_allocator: job comment %s", job_ptr->comment);
+    sprintf(str, "./external_allocator.sh %s %s", nodes, job_ptr->comment);
     rc = system(str);
     info("Hi");
     

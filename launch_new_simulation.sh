@@ -1,11 +1,19 @@
 #!/bin/bash
 
+extalloc=false
+servername=localhost
+serverport=1234
+
+allocresults=allocresults.txt
+statsresults=statsresults.txt
+
 if [ $# -eq 1 ] ; then
-    allocresults=$1_alloc.txt
-    statsresults=$1_stats.txt
-else
-    allocresults=allocresults.txt
-    statsresults=statsresults.txt
+    if [ $1 == "ext" ] ; then
+        extalloc=true
+    else
+        allocresults=$1_alloc.txt
+        statsresults=$1_stats.txt
+    fi ;
 fi;
 
 echo -n "Resetting accounting files... ";

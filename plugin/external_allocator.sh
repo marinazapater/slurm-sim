@@ -10,7 +10,8 @@ POLICY="slurm_default"
 exec >> $LOG_FILE;
 
 echo "`date +%Y-%m-%d %H:%M:%S` : External allocator working" ;
-echo "`date +%Y-%m-%d %H:%M:%S` : Arguments: $1";
+echo "`date +%Y-%m-%d %H:%M:%S` : Non-free nodes: $1";
+echo "`date +%Y-%m-%d %H:%M:%S` : JobPower: $2";
 sleep 2;
 
 echo "`date +%Y-%m-%d %H:%M:%S` : Fi";
