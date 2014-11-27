@@ -632,11 +632,6 @@ static void *time_mgr(void *arg){
 
             /* Uhmm... This is necessary if a large number of jobs are submitted at the same time but it seems
              * to have an impact on determinism */
-            //printf("time_mgr: current %u and next trace %ld\n ",*(current_sim), trace_head->submit);
-            if(*(current_sim) >= trace_head->submit){
-                printf("Will submit a new trace: current %u and next trace %ld\n ",*(current_sim), trace_head->submit);
-            }
-            //XXX-marina: se queda tostado aqui...
             sem_wait(global_sem);
             checking_for_new_threads();
             sem_post(global_sem);
@@ -645,7 +640,6 @@ static void *time_mgr(void *arg){
 /*             printf("time_mgr: current %u and next trace %ld\n", *(current_sim), trace_head->submit); */
 /* #endif */
             if(*(current_sim) >= trace_head->submit){
-                printf("Hi");
                 sim_job_msg_t req;
                 slurm_msg_t req_msg;
                 slurm_msg_t resp_msg;
@@ -654,8 +648,6 @@ static void *time_mgr(void *arg){
 
                 /* First Sending a slurm message to slurmd  using a special SLURM message ID for simulation 
                  * purposes including jobid and job duration */
-                printf("Will submit a new trace");
-                
                 slurm_msg_t_init(&req_msg);
                 slurm_msg_t_init(&resp_msg);
 
@@ -709,12 +701,13 @@ static void *time_mgr(void *arg){
 
                 if(strlen(trace_head->reservation)> 0)
                     sprintf(child_args[12],"--reservation=%s", trace_head->reservation);
-                
+                //else
+                //    sprintf(child_args[12],"--comment=using_normal_resources");
                 if (strlen(trace_head->comment) > 0)
                     sprintf(child_args[12],"--comment=%s", trace_head->comment);
 
-                //child_args[10] = malloc(100);
-                //memset(child_args[10], '\0', 100);
+                child_args[10] = malloc(100);
+                memset(child_args[10], '\0', 100);
                 //sprintf(child_args[10],"--uid=%s", trace_head->username);
                 if (trace_head->exclusive)
                     sprintf(child_args[10],"--exclusive");
@@ -726,7 +719,6 @@ static void *time_mgr(void *arg){
                     /*printf("Jobname is: %s \n", trace_head->jobname);*/
                 }
 
-                printf("Will fork now");
                 child = fork();
 
                 if(child == 0){ /* the child */

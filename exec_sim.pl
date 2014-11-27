@@ -13,7 +13,7 @@ open LOG,"|tee $logfile";
 print LOG "Launching sim_mgr...$WORKDIR/sim_mgr\n";
 system("cd $WORKDIR");
 
-system("SLURM_CONF=$WORKDIR/slurm_conf/slurm.conf SLURM_PROGRAMS=$WORKDIR/slurm_programs/bin ./sim_mgr 0 $SERVER $PORT &");
+system("SLURM_CONF=$WORKDIR/slurm_conf/slurm.conf SLURM_PROGRAMS=$WORKDIR/slurm_programs/bin ./sim_mgr 0 $SERVER $PORT > sim_mgr.log &");
 
 sleep(5);
 print LOG "Launching slurmctld...\n";
