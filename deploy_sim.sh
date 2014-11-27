@@ -8,7 +8,9 @@ echo "Deploying simulator code to $SERVER" ;
 
 rsync -avP launch_new_simulation.sh $SERVER:/$SIMPATH ;
 rsync -avP exec_sim.pl $SERVER:/$SIMPATH ;
-rsync -avP simulation_lib/*.[c,h] $SERVER:/$SIMLIBPATH ;
+rsync -avP mysql-scripts $SERVER:/$SIMPATH;
+
+rsync -avP simulation_lib/*.[c,h] $SERVER:/$SIMLIBPATH ; 
 
 cd plugin/ && ./deploy.sh && cd .. ;
 

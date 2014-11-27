@@ -119,8 +119,8 @@ char scontrol_bin[200];
 char *global_envp[100];     /* Uhmmm ... I do not like this limitted number of env values */
 
 /* global socket handling */
-/* int udpsock; */
-/* struct pollfd my_fd; */
+int udpsock;
+struct pollfd my_fd;
 
 void change_debug_level(int signum){
 
@@ -347,37 +347,64 @@ int checking_for_new_threads(){
 }
 
 //XXX-marina: SLURM-sim external allocator iface
-/* This function checks if I need to halt slurm simulator */                    
-/* int check_halt_slurmsim() */
-/* { */
-/*     int res, bytecnt; */
-/*     char buffer[500]; */
-    
-/*     my_fd.fd = udpsock; */
-/*     my_fd.events = POLLIN; */
+int connect_ext_allocator(int port)
+{
+    //Socket data
+    int val=1;
+    struct sockaddr_in sin;
 
-/*     //Checking if a I need to halt */
-/*     res = poll(&my_fd, 1, 10); */
-/*     if(res > 0) { */
-/*         bytecnt = recv(udpsock, buffer, sizeof(buffer), 0); */
-/*         if(bytecnt > 0){ */
-/*             printf("Received buffer is: %s\n", buffer); */
-/*             if (strcmp(buffer, "halt")==0){ */
-/*                 printf("Halt received. Waiting until I receive more data\n"); */
-/*                 bytecnt=recv(udpsock, buffer, sizeof(buffer), 0); */
-/*                 printf("Received buffer is: %s\n", buffer); */
-/*                 printf("Continuing execution of slurm-sim"); */
-/*             } */
-/*             else { */
-/*                 printf("I didn't receive what I was expecting...\n"); */
-/*             } */
-/*         } */
-/*         else { */
-/*             return -1; */
-/*         } */
-/*     } */
-/*     return 0; */
-/* } */
+    //Server socket connection
+    udpsock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+    val=1;
+    setsockopt(udpsock, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(int));
+
+    memset(&sin, 0, sizeof(sin));
+    sin.sin_family = AF_INET;
+    sin.sin_port = htons(port);
+    sin.sin_addr.s_addr = htonl(INADDR_ANY);
+    if ( bind(udpsock, (struct sockaddr *) &sin, sizeof(sin)) < 0 ){
+        printf("Error when binding udp socket!\n");
+    }
+    my_fd.fd = udpsock;
+    my_fd.events = POLLIN;
+    printf("SOCKET: Udp socket succesfully created on port %d\n", port);
+
+    return 0;
+}
+
+/* This function checks if I need to halt slurm simulator */                    
+int check_halt_slurmsim()
+{
+    int res, bytecnt;
+    char buffer[500];
+    
+    my_fd.fd = udpsock;
+    my_fd.events = POLLIN;
+
+    //Checking if a I need to halt
+    res = poll(&my_fd, 1, 10);
+    if(res > 0) {
+        printf("Poll returned a value\n");
+        bytecnt = recv(udpsock, buffer, sizeof(buffer), 0);
+        if(bytecnt > 0){
+            printf("Received buffer is: %s\n", buffer);
+            if (strstr(buffer, "halt") != NULL){
+                printf("Halt received. Waiting until I receive more data\n");
+                bytecnt=recv(udpsock, buffer, sizeof(buffer), 0);
+                printf("Received buffer is: %s\n", buffer);
+                printf("Continuing execution of slurm-sim\n");
+            }
+            else {
+                printf("I didn't receive what I was expecting...\n");
+            }
+        }
+        else {
+            return -1;
+        }
+    }
+    return 0;
+}
 
 /* This is the main simulator function */
 static void *time_mgr(void *arg){
@@ -668,7 +695,7 @@ static void *time_mgr(void *arg){
                 sim_mgr_debug(0, "check_events_trace: I got the SLURM_OK. Let's do the fork\n");
 
                 /* First some parameters updates using job trace information */
-                printf("Updating child_args params");
+                //printf("Updating child_args params");
                 child_args[8] = malloc(100);
                 memset(child_args[8], '\0', 100);
                 sprintf(child_args[8], "--ntasks-per-node=%d", trace_head->tasks);
@@ -772,7 +799,7 @@ static void *time_mgr(void *arg){
 
         //XXX-marina: interface external_allocator-SlurmSim-DCSim
         /* Check if I need to stop runnning */
-        //check_halt_slurmsim();
+        check_halt_slurmsim();
         
         /* And finally we increment simulation time */
         *(current_sim) = *(current_sim) + 1;
@@ -1247,31 +1274,19 @@ int main(int argc, char *argv[], char *envp[]){
 
     pthread_attr_t attr;
     pthread_t id_server, id_mgr;   
-    int i;
+    int i, port; 
     
-    //Socket data
-    /* int port; */
-    /* struct sockaddr_in sin; */
-
     //Parse cmdline args
     if(argc != 4){
         printf("Usage %s sim_end_point server port\n", argv[0]);
         return -1;
     }
     sim_end_point = atoi(argv[1]);
-    //port = atoi(argv[3]);
-    //port = 1234;
+    port = atoi(argv[3]);
+    
     printf("MAIN: sim_mgr running\n");
         
-    //Server socket connection
-    /* udpsock = socket(AF_INET, SOCK_DGRAM, 0); */
-    /* sin.sin_family = AF_INET; */
-    /* sin.sin_port = htons(port); */
-    /* sin.sin_addr.s_addr = INADDR_ANY; */
-    /* bind(udpsock, (struct sockaddr *) &sin, sizeof(sin)); */
-    /* my_fd.fd = udpsock; */
-    /* my_fd.events = POLLIN; */
-    /* printf("SOCKET: Udp socket succesfully created\n"); */
+    connect_ext_allocator(port);
 
     // Env vars
     i = 0;
