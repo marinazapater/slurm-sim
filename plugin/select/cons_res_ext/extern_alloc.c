@@ -55,8 +55,7 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
     info("external_allocator: job comment %s", job_ptr->comment);
     sprintf(str, "./external_allocator.sh %s %s", nodes, job_ptr->comment);
     rc = system(str);
-    info("Hi");
-    
+   
     /* if successful, sync up the core_map with the node_map, and */
 	/* create a cpus array */
 	if (rc == SLURM_SUCCESS) {

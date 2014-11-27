@@ -24,6 +24,10 @@ rm /tmp/sim_sbatch-*
 echo "Done" ;
 sleep 2 ;
 
+echo "Copying files to simulation folder";
+cp ./slurm/src/simulation_lib/list_trace .
+cp ./slurm/src/simulation_lib/sim_mgr .
+
 num=`./list_trace | wc -l`
 if [ $num -lt 2 ]; then
 	echo "FATAL: No jobs in ./list_trace" ;
@@ -34,7 +38,7 @@ numjobs=$(( $num - 2 ))
 echo "Number of jobs to simulate: $numjobs"
 
 echo "Launching exec_sim.pl";
-./exec_sim.pl . $numjobs 
+./exec_sim.pl . $numjobs $servername $serverport 
 
 echo "Retrieving accounting results. Storing in results.txt" ;
 

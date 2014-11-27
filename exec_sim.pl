@@ -2,16 +2,18 @@
 
 my $WORKDIR=$ARGV[0];
 my $TOTAL_JOBS=$ARGV[1];
-
+my $SERVER=$ARGV[2];
+my $PORT=$ARGV[3];
 
 my $logfile="$WORKDIR/exec_sim.log";
 
-open LOG,">$logfile";
+#open LOG,">$logfile";
+open LOG,"|tee $logfile";
 
 print LOG "Launching sim_mgr...$WORKDIR/sim_mgr\n";
 system("cd $WORKDIR");
 
-system("SLURM_CONF=$WORKDIR/slurm_conf/slurm.conf SLURM_PROGRAMS=$WORKDIR/slurm_programs/bin $WORKDIR/slurm_programs/bin/sim_mgr 0 > sim_mgr.log &");
+system("SLURM_CONF=$WORKDIR/slurm_conf/slurm.conf SLURM_PROGRAMS=$WORKDIR/slurm_programs/bin ./sim_mgr 0 $SERVER $PORT &");
 
 sleep(5);
 print LOG "Launching slurmctld...\n";
@@ -21,7 +23,7 @@ sleep(5);
 print LOG "Launching slurmd...\n";
 system("$WORKDIR/exec_slurmd.sh $WORKDIR &");
 
-sleep(5);
+sleep(10);
 
 # Let's see which addresses have main slurm functions including plugins
 open PS,"ps axl | grep -v grep| grep slurmctld|";

@@ -198,7 +198,9 @@ int main(int argc, char *argv[]){
 
                 written = write(trace_file, &new_trace, sizeof(job_trace_t));
 
-                printf("JOB(%s): %d, %d, %d(%d,%d)\n", new_trace.username, job_counter - 1, new_trace.duration, new_trace.tasks, new_trace.cpus_per_task, new_trace.tasks_per_node);
+                printf("JOB(%s): %d, %d, %d(%d,%d), exc=%d, comm=%s\n", new_trace.username,
+                       job_counter - 1, new_trace.duration, new_trace.tasks, new_trace.cpus_per_task,
+                       new_trace.tasks_per_node, new_trace.exclusive, new_trace.comment);
                 if(written != sizeof(new_trace)){
                         printf("Error writing to file: %d of %ld\n", written, sizeof(new_trace));
                         return -1;

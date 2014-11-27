@@ -2,6 +2,7 @@
  * SLURM simulator launcher code
  *******************************************************/
 
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -9,15 +10,17 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <linux/tcp.h>
 #include <string.h>
 #include <strings.h>
 #include <errno.h>
-#include<time.h>
-#include<sys/time.h>
-#include<sys/stat.h>
-#include<fcntl.h>
+#include <time.h>
+#include <sys/time.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#include <poll.h>
+#include <signal.h>
 
 #include<ctype.h>
 
@@ -114,6 +117,10 @@ char sbatch_bin[200];
 char scontrol_bin[200];
 
 char *global_envp[100];     /* Uhmmm ... I do not like this limitted number of env values */
+
+/* global socket handling */
+/* int udpsock; */
+/* struct pollfd my_fd; */
 
 void change_debug_level(int signum){
 
@@ -339,6 +346,38 @@ int checking_for_new_threads(){
 
 }
 
+//XXX-marina: SLURM-sim external allocator iface
+/* This function checks if I need to halt slurm simulator */                    
+/* int check_halt_slurmsim() */
+/* { */
+/*     int res, bytecnt; */
+/*     char buffer[500]; */
+    
+/*     my_fd.fd = udpsock; */
+/*     my_fd.events = POLLIN; */
+
+/*     //Checking if a I need to halt */
+/*     res = poll(&my_fd, 1, 10); */
+/*     if(res > 0) { */
+/*         bytecnt = recv(udpsock, buffer, sizeof(buffer), 0); */
+/*         if(bytecnt > 0){ */
+/*             printf("Received buffer is: %s\n", buffer); */
+/*             if (strcmp(buffer, "halt")==0){ */
+/*                 printf("Halt received. Waiting until I receive more data\n"); */
+/*                 bytecnt=recv(udpsock, buffer, sizeof(buffer), 0); */
+/*                 printf("Received buffer is: %s\n", buffer); */
+/*                 printf("Continuing execution of slurm-sim"); */
+/*             } */
+/*             else { */
+/*                 printf("I didn't receive what I was expecting...\n"); */
+/*             } */
+/*         } */
+/*         else { */
+/*             return -1; */
+/*         } */
+/*     } */
+/*     return 0; */
+/* } */
 
 /* This is the main simulator function */
 static void *time_mgr(void *arg){
@@ -350,7 +389,7 @@ static void *time_mgr(void *arg){
     struct timeval t1, t2;
     int i, j;
     int monitor_countdown;
-
+    
     /* TODO: Submit should be more flexible. This is fine for Marenostrum usual job but it should cover all sbatch possibilities */
     //XXX-marina making this compatible at least with trace_build_from_file
     char *child_args[16] = { "", "--workdir=/tmp",
@@ -435,8 +474,8 @@ static void *time_mgr(void *arg){
         
         /* Do we have to end simulation in this cycle? */
         if(sim_end_point == current_sim[0]){
-
-                dumping_shared_mem(SIGSEGV);
+            printf("Ending simulation this cycle");
+            dumping_shared_mem(SIGSEGV);
         }
 
 #ifdef MONITOR
@@ -457,7 +496,9 @@ static void *time_mgr(void *arg){
 
         gettimeofday(&t1, NULL);
 
-        sim_mgr_debug(3, "SIM_MGR[%u][%ld][%ld]: Checking for %d threads [%016llx], last_cycle (created,exited): %d,%d\n", current_sim[0], t1.tv_sec, t1.tv_usec, current_threads[0], sleep_map_array[0], pthread_create_counter[0], pthread_exit_counter[0]);
+        sim_mgr_debug(3, "SIM_MGR[%u][%ld][%ld]: Checking for %d threads [%016llx], last_cycle (created,exited): %d,%d\n",
+                      current_sim[0], t1.tv_sec, t1.tv_usec, current_threads[0],
+                      sleep_map_array[0], pthread_create_counter[0], pthread_exit_counter[0]);
 
         /* With global sem locked any thread can be created. Resetting create and exit counters */
         pthread_create_counter[0] = 0;
@@ -556,10 +597,11 @@ static void *time_mgr(void *arg){
         sem_post(global_sem);
 
         /* Now checking if a new reservation needs to be created */
+        //printf("Checking reservations\n");
         if(rsv_trace_head && (current_sim[0] >= rsv_trace_head->creation_time)){
 
             int exec_result;
-            printf("Creation reservation for %s [%ld - %ld]\n", rsv_trace_head->rsv_command, current_sim[0], rsv_trace_head->creation_time);
+            printf("Creation reservation for %s [%d - %ld]\n", rsv_trace_head->rsv_command, current_sim[0], rsv_trace_head->creation_time);
             child = fork();
 
             if(child == 0){ /* the child */
@@ -581,6 +623,7 @@ static void *time_mgr(void *arg){
         }
 
         /* Now checking if a new job needs to be submitted */
+        //printf("Checking new job submissions\n");
         while(trace_head){
 
             int hour,min,sec;
@@ -589,16 +632,20 @@ static void *time_mgr(void *arg){
 
             /* Uhmm... This is necessary if a large number of jobs are submitted at the same time but it seems
              * to have an impact on determinism */
-
+            //printf("time_mgr: current %u and next trace %ld\n ",*(current_sim), trace_head->submit);
+            if(*(current_sim) >= trace_head->submit){
+                printf("Will submit a new trace: current %u and next trace %ld\n ",*(current_sim), trace_head->submit);
+            }
+            //XXX-marina: se queda tostado aqui...
             sem_wait(global_sem);
             checking_for_new_threads();
             sem_post(global_sem);
 
-#ifdef DEBUG
-            printf("time_mgr: current %u and next trace %ld\n", *(current_sim), trace_head->submit);
-#endif
+/* #ifdef DEBUG */
+/*             printf("time_mgr: current %u and next trace %ld\n", *(current_sim), trace_head->submit); */
+/* #endif */
             if(*(current_sim) >= trace_head->submit){
-
+                printf("Hi");
                 sim_job_msg_t req;
                 slurm_msg_t req_msg;
                 slurm_msg_t resp_msg;
@@ -607,7 +654,8 @@ static void *time_mgr(void *arg){
 
                 /* First Sending a slurm message to slurmd  using a special SLURM message ID for simulation 
                  * purposes including jobid and job duration */
-
+                printf("Will submit a new trace");
+                
                 slurm_msg_t_init(&req_msg);
                 slurm_msg_t_init(&resp_msg);
 
@@ -628,6 +676,7 @@ static void *time_mgr(void *arg){
                 sim_mgr_debug(0, "check_events_trace: I got the SLURM_OK. Let's do the fork\n");
 
                 /* First some parameters updates using job trace information */
+                printf("Updating child_args params");
                 child_args[8] = malloc(100);
                 memset(child_args[8], '\0', 100);
                 sprintf(child_args[8], "--ntasks-per-node=%d", trace_head->tasks);
@@ -668,16 +717,16 @@ static void *time_mgr(void *arg){
                 //memset(child_args[10], '\0', 100);
                 //sprintf(child_args[10],"--uid=%s", trace_head->username);
                 if (trace_head->exclusive)
-                    sprintf(child_args[10],"--comment=%s", trace_head->comment)
-
+                    sprintf(child_args[10],"--exclusive");
                 
-                if(strlen(trace_head->jobname)> 0){
+                if(strlen(trace_head->jobname) > 0){
                     child_args[13] = malloc(100);
                     memset(child_args[13], '\0', 100);
                     sprintf(child_args[13], "--job-name=%s", trace_head->jobname);
                     /*printf("Jobname is: %s \n", trace_head->jobname);*/
                 }
 
+                printf("Will fork now");
                 child = fork();
 
                 if(child == 0){ /* the child */
@@ -729,7 +778,11 @@ static void *time_mgr(void *arg){
         sim_mgr_debug(3, "SMA: %16llx, TEM: %16llx\n", *(sleep_map_array), *(thread_exit_array));
         sim_mgr_debug(3, "Threads management: created %d, exited %d\n", pthread_create_counter[0], pthread_exit_counter[0]);
 
-        /* And finally we can increment simulation time */
+        //XXX-marina: interface external_allocator-SlurmSim-DCSim
+        /* Check if I need to stop runnning */
+        //check_halt_slurmsim();
+        
+        /* And finally we increment simulation time */
         *(current_sim) = *(current_sim) + 1;
     }
 
@@ -1203,13 +1256,32 @@ int main(int argc, char *argv[], char *envp[]){
     pthread_attr_t attr;
     pthread_t id_server, id_mgr;   
     int i;
+    
+    //Socket data
+    /* int port; */
+    /* struct sockaddr_in sin; */
 
-    if(argc != 2){
-        printf("Usage %s sim_end_point \n", argv[0]);
+    //Parse cmdline args
+    if(argc != 4){
+        printf("Usage %s sim_end_point server port\n", argv[0]);
         return -1;
     }
     sim_end_point = atoi(argv[1]);
+    //port = atoi(argv[3]);
+    //port = 1234;
+    printf("MAIN: sim_mgr running\n");
+        
+    //Server socket connection
+    /* udpsock = socket(AF_INET, SOCK_DGRAM, 0); */
+    /* sin.sin_family = AF_INET; */
+    /* sin.sin_port = htons(port); */
+    /* sin.sin_addr.s_addr = INADDR_ANY; */
+    /* bind(udpsock, (struct sockaddr *) &sin, sizeof(sin)); */
+    /* my_fd.fd = udpsock; */
+    /* my_fd.events = POLLIN; */
+    /* printf("SOCKET: Udp socket succesfully created\n"); */
 
+    // Env vars
     i = 0;
     while(envp[i]){
         global_envp[i] = envp[i++];
@@ -1277,3 +1349,4 @@ int main(int argc, char *argv[], char *envp[]){
 
     return 0;
 }
+
