@@ -53,7 +53,7 @@
 #include "select_cons_res_ext.h"
 #include "dist_tasks.h"
 #include "job_test_ext.h"
-
+#include "extern_alloc.h"
 
 #define NODEINFO_MAGIC 0x82ab
 
@@ -1975,7 +1975,6 @@ extern int select_p_job_test(struct job_record *job_ptr, bitstr_t * bitmap,
 
 extern int select_p_job_begin(struct job_record *job_ptr)
 {
-    //TODO-marina: notify halt to slurm-sim
 	return SLURM_SUCCESS;
 }
 
@@ -2044,6 +2043,7 @@ extern int select_p_job_fini(struct job_record *job_ptr)
 {
     //TODO-marina: notify halt to slurm-sim
     // (here we have info on nodes to be deallocated)
+    call_dcsim(job_ptr, NULL, EXTALLOC_TASK_END);
 	xassert(job_ptr);
 	xassert(job_ptr->magic == JOB_MAGIC);
 

@@ -2425,9 +2425,8 @@ alloc_job:
 	 * - a free_cores bitmap of usable cores on each selected node
 	 * - a per-alloc-node cpu_count array
 	 */
-    info("Printing final allocation: selected nodes (bitmap) and free_cores");
-    extalloc_print_job_bitmap(bitmap);
-    extalloc_print_job_bitmap(free_cores);
+    info("Calling DCSim with allocation: selected nodes (bitmap) and free_cores");
+    call_dcsim(job_ptr, bitmap, EXTALLOC_TASK_BEGIN);
     
 	if ((mode != SELECT_MODE_WILL_RUN) && (job_ptr->part_ptr == NULL))
 		error_code = EINVAL;

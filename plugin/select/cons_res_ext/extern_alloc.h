@@ -38,6 +38,9 @@
 
 #include "select_cons_res_ext.h"
 
+#define EXTALLOC_TASK_BEGIN 1
+#define EXTALLOC_TASK_END   0
+
 int extalloc_print_job_bitmap ( bitstr_t *bitmap );
 
 uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
@@ -46,5 +49,8 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
                                   bitstr_t *core_map,
                                   struct node_use_record *node_usage,
                                   uint16_t cr_type, bool test_only);
+
+uint16_t call_dcsim (struct job_record *job_ptr, bitstr_t *node_map,
+                     int begin);
 
 #endif //_CR_EXTERN_ALLOC_H

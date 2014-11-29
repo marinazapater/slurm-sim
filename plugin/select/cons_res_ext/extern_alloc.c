@@ -42,23 +42,82 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
                               struct node_use_record *node_usage,
                               uint16_t cr_type, bool test_only)
 {
-    int rc = SLURM_ERROR;
+    int rc ;
     char *nodes;
     char str[1000];
-    uint16_t *cpu_cnt, *cpus = NULL;
-    uint32_t start, n, a;
+    uint16_t *cpus = NULL;
     
     extalloc_print_job_bitmap(node_map);
     extalloc_print_job_bitmap(core_map);
     nodes = bitmap2node_name(node_map);
     info("external_allocator: non-free nodes %s", nodes);
     info("external_allocator: job comment %s", job_ptr->comment);
-    sprintf(str, "./external_allocator.sh %s %s", nodes, job_ptr->comment);
+    sprintf(str, "./external_allocator.sh %s %s %d", nodes, job_ptr->comment, job_ptr->job_id);
     rc = system(str);
-   
+
+    //XXX-marina: need to retrieve allocation data and convert to bitmap!!
     /* if successful, sync up the core_map with the node_map, and */
 	/* create a cpus array */
 	if (rc == SLURM_SUCCESS) {
+        FILE *fr;
+        fr = fopen ("/tmp/alloc_bitmap.txt", "r");
+        if (fr == NULL){
+            info("extern_alloc: error opening bitmap file for reading\n");
+            return NULL;
+        }
+        
+        //Reading bitmap file line by line and filling structures
+        char line[1000];
+        int res=0, node_i=0, i=0, size=0;
+        int core_start_bit, core_end_bit, cpu_alloc_size;
+        size=bit_size(node_map);
+        bit_nclear(node_map, 0, size-1);
+        size=bit_size(core_map);
+        bit_nclear(core_map, 0, size-1);
+        
+        while (fgets(line,sizeof(line), fr) != NULL){
+            bitstr_t *my_bitmap = NULL;
+
+            // Reading nodename and number of used cores from bitmap
+            char nodename[20];
+            int num_cores_used = 0;
+            sscanf(line, "%s,%d", nodename, &num_cores_used);
+            
+            // Getting bitmap position of node by name
+            if (node_name2bitmap(nodename, 0, &my_bitmap) != 0){
+                info("extern_alloc: node_name2bitmap failed");
+                fclose(fr);
+                return NULL;
+            }
+            res = bit_set_count(my_bitmap);
+            if (res != 1){
+                info("extern_alloc: did not get bitmap of node properly");
+                info("extern_alloc: %d bits set", res );
+            }
+            node_i=bit_ffs(my_bitmap);
+            bitmap_free(my_bitmap);
+            
+            // Setting allocation in bitmap 
+            bit_set(node_map, node_i);
+            core_start_bit = cr_get_coremap_offset(node_i);
+            core_end_bit   = cr_get_coremap_offset(node_i+1) - 1;
+            if (num_cores_used > (core_end_bit + 1 - core_start_bit)){
+                info("Cores to be allocated (%d) greater than slots (%d). Cannot allocate",
+                     num_cores_used, (core_end_bit + 1 - core_start_bit));
+            }
+            for (i=0; i<num_cores_used; i++){
+                bit_set(core_map, core_start_bit + i);
+            }
+        }
+        fclose(fr);
+        
+        info("extern_alloc: printing final bit sets");
+        extalloc_print_job_bitmap(node_map);
+        extalloc_print_job_bitmap(core_map);
+
+        // Setting cpus accordingly
+        uint16_t *cpu_cnt;
+        uint32_t start, n, a;
 		cpus = xmalloc(bit_set_count(node_map) * sizeof(uint16_t));
 		start = 0;
 		a = 0;
@@ -76,7 +135,36 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
 			bit_nclear(core_map, start, cr_get_coremap_offset(n)-1);
 		}
 	}
-    
-    return NULL;
+    return cpus;
+}
+
+/* Calls dcsim to compute energy when a task begins (begin=1) or ends (begin=0) */
+uint16_t call_dcsim (struct job_record *job_ptr, bitstr_t *node_map, int begin)
+{
+    //We should somehow give the current time to the simulator...
+    char *nodes;
+    char str[1000];
+    int rc;
+    if ((node_map == NULL) && (begin == EXTALLOC_TASK_BEGIN)){
+        printf("Error. Cannot call DCsim because I got no nodemap");
+        return 1;
+    }
+    nodes = bitmap2node_name(node_map);
+    info("external_allocator: non-free nodes %s", nodes);
+    info("external_allocator: job comment %s", job_ptr->comment);
+    if (begin == EXTALLOC_TASK_BEGIN){
+        printf("New task begun. Calling simulator.\n");
+        sprintf(str, "./dcsim_caller.sh %d %ld jobbegin", job_ptr->job_id, job_ptr->start_time);
+    }
+    else if (begin == EXTALLOC_TASK_END){
+        printf("New task ended. Calling simulator.\n");
+        sprintf(str, "./dcsim_caller.sh %s %s jobend", job_ptr->job_id, job_ptr->end_time);
+    }
+    else {
+        printf("Error, invalid task type\n");
+        return 1;
+    }
+    rc = system(str);
+    return rc;
 }
 
