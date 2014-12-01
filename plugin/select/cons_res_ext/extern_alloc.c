@@ -60,7 +60,9 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
 	/* create a cpus array */
 	if (rc == SLURM_SUCCESS) {
         FILE *fr;
-        fr = fopen ("/tmp/alloc_bitmap.txt", "r");
+        char filename[100];
+        sprintf(filename, "/tmp/alloc_btm_%d.txt", job_ptr->job_id);
+        fr = fopen (filename, "r");
         if (fr == NULL){
             info("extern_alloc: error opening bitmap file for reading\n");
             return NULL;
@@ -70,6 +72,10 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
         char line[1000];
         int res=0, node_i=0, i=0, size=0;
         int core_start_bit, core_end_bit, cpu_alloc_size;
+        char *token = NULL;
+        char nodename[20];
+        int num_cores_used = 0;
+        
         size=bit_size(node_map);
         bit_nclear(node_map, 0, size-1);
         size=bit_size(core_map);
@@ -79,9 +85,23 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
             bitstr_t *my_bitmap = NULL;
 
             // Reading nodename and number of used cores from bitmap
-            char nodename[20];
-            int num_cores_used = 0;
-            sscanf(line, "%s,%d", nodename, &num_cores_used);
+            info("extern alloc: line is %s", line);
+            token = strtok( line, "," );
+            if (token == NULL){
+                info("extern_alloc: error parsing node name");
+                fclose(fr);
+                return NULL;
+            }
+            strcpy( nodename, token );
+            token = strtok( NULL, ",\n");
+            if (token == NULL){
+                info("extern_alloc: error parsing cores used");
+                fclose(fr);
+                return NULL;
+            }
+            num_cores_used = atoi(token);
+            info("extern_alloc: nodename: %s, cores used: %d",
+                 nodename, num_cores_used);
             
             // Getting bitmap position of node by name
             if (node_name2bitmap(nodename, 0, &my_bitmap) != 0){
@@ -95,7 +115,7 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
                 info("extern_alloc: %d bits set", res );
             }
             node_i=bit_ffs(my_bitmap);
-            bitmap_free(my_bitmap);
+            bit_free(my_bitmap);
             
             // Setting allocation in bitmap 
             bit_set(node_map, node_i);
@@ -114,7 +134,7 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
         info("extern_alloc: printing final bit sets");
         extalloc_print_job_bitmap(node_map);
         extalloc_print_job_bitmap(core_map);
-
+        info("extern_alloc: cr_node_cnt is %d",cr_node_cnt);
         // Setting cpus accordingly
         uint16_t *cpu_cnt;
         uint32_t start, n, a;
@@ -135,6 +155,7 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
 			bit_nclear(core_map, start, cr_get_coremap_offset(n)-1);
 		}
 	}
+    info("external_allocator: external allocation finished successfully");
     return cpus;
 }
 
@@ -158,7 +179,7 @@ uint16_t call_dcsim (struct job_record *job_ptr, bitstr_t *node_map, int begin)
     }
     else if (begin == EXTALLOC_TASK_END){
         printf("New task ended. Calling simulator.\n");
-        sprintf(str, "./dcsim_caller.sh %s %s jobend", job_ptr->job_id, job_ptr->end_time);
+        sprintf(str, "./dcsim_caller.sh %d %ld jobend", job_ptr->job_id, job_ptr->end_time);
     }
     else {
         printf("Error, invalid task type\n");

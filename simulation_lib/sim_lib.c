@@ -843,7 +843,7 @@ void __attribute__ ((constructor)) sim_init(void){
 
     if(real_gettimeofday == NULL){
 
-        printf("Looking for real gettimeofday function\n");
+        //printf("Looking for real gettimeofday function\n");
         handle = dlopen(LIBC_PATH, RTLD_LOCAL | RTLD_LAZY);
         if(handle == NULL){
             printf("Error in dlopen %s\n", dlerror());
@@ -880,7 +880,7 @@ void __attribute__ ((constructor)) sim_init(void){
 
     if(real_time == NULL){
 
-        printf("Looking for real time function\n");
+        //printf("Looking for real time function\n");
         handle = dlopen(LIBC_PATH, RTLD_LOCAL | RTLD_LAZY);
         if(handle == NULL){
             printf("Error in dlopen: %s\n", dlerror());
@@ -950,6 +950,6 @@ void __attribute__ ((constructor)) sim_init(void){
         sem_wait(thread_sem[main_thread_id]);
     }
 
-    printf("sim_init: done\n");
+    //printf("sim_init: done\n");
 }
 

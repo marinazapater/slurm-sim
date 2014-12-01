@@ -11,12 +11,17 @@ servername="s"
 PREVALLOC=$1
 CURRJOB=$2
 ALLOCOUT=$3
-JOBID=$4
+ALLOCBMP=$4
+JOBID=$5
 
 nodealloc=$(( $JOBID - 1000 ))
-echo "Dummy allocator working...";
-echo "[\"${rackname}1\", \"$servername$nodealloc\", 256]";
-echo "[\"${rackname}1\", \"$servername$nodealloc\", 256]" > $ALLOCOUT;
+echo "`date +\"%Y-%m-%d %H:%M:%S\"` : $0 :Dummy allocator working...";
+echo "[\"${rackname}1\",\"$servername$nodealloc\",256]";
+echo "[\"${rackname}1\",\"$servername$nodealloc\",256]" > $ALLOCOUT;
+
+#Convert ALLOCOUT into bitmap for slurm
+# node,numcores --> one per line
+cat $ALLOCOUT | sed -e 's#]##g' | sed -e 's#"##g' | awk -F"," '{print $2","$3}' | grep '^s' > $ALLOCBMP ;
 
 exit 0;
 
