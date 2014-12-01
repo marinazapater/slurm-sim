@@ -46,6 +46,7 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
     char *nodes;
     char str[1000];
     uint16_t *cpus = NULL;
+    uint16_t *cpu_cnt;
     
     extalloc_print_job_bitmap(node_map);
     extalloc_print_job_bitmap(core_map);
@@ -75,7 +76,12 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
         char *token = NULL;
         char nodename[20];
         int num_cores_used = 0;
-        
+
+        info("Getting resource usage");
+        _get_res_usage(job_ptr, node_map, core_map, cr_node_cnt,
+                       node_usage, cr_type, &cpu_cnt, false);
+
+        info("Generating bitmap");
         size=bit_size(node_map);
         bit_nclear(node_map, 0, size-1);
         size=bit_size(core_map);
@@ -130,13 +136,13 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
             }
         }
         fclose(fr);
-        
+               
         info("extern_alloc: printing final bit sets");
         extalloc_print_job_bitmap(node_map);
         extalloc_print_job_bitmap(core_map);
         info("extern_alloc: cr_node_cnt is %d",cr_node_cnt);
+       
         // Setting cpus accordingly
-        uint16_t *cpu_cnt;
         uint32_t start, n, a;
 		cpus = xmalloc(bit_set_count(node_map) * sizeof(uint16_t));
 		start = 0;
@@ -144,11 +150,11 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
 		for (n = 0; n < cr_node_cnt; n++) {
 			if (bit_test(node_map, n)) {
 				cpus[a++] = cpu_cnt[n];
-				if (cr_get_coremap_offset(n) != start) {
+                if (cr_get_coremap_offset(n) != start) {
 					bit_nclear(core_map, start,
 						   (cr_get_coremap_offset(n))-1);
 				}
-				start = cr_get_coremap_offset(n + 1);
+                start = cr_get_coremap_offset(n + 1);
 			}
 		}
 		if (cr_get_coremap_offset(n) != start) {

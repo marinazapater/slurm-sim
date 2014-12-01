@@ -34,7 +34,7 @@ echo "`date +\"%Y-%m-%d %H:%M:%S\"` : $0 : JobId: $3";
 echo "halt" | nc -v -w 0 -u $SOCKHOST $SOCKPORT ;  
 echo "[$newjobpwr]" > $CURRJOB ;
 
-# Callingn allocator
+# Calling allocator
 echo "Calling allocator...";
 ./dummy_allocator.sh $PREVALLOC $CURRJOB $ALLOCOUT $ALLOCBITMAP ${jobid}
 rc=$?

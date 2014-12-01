@@ -900,7 +900,7 @@ static int _get_cpu_cnt(struct job_record *job_ptr, const int node_index,
  * OUT: cpu_cnt    - number of cpus that can be used by this job
  * IN: test_only   - ignore allocated memory check
  */
-static void _get_res_usage(struct job_record *job_ptr, bitstr_t *node_map,
+void _get_res_usage(struct job_record *job_ptr, bitstr_t *node_map,
 			   bitstr_t *core_map, uint32_t cr_node_cnt,
 			   struct node_use_record *node_usage,
 			   uint16_t cr_type, uint16_t **cpu_cnt_ptr, 

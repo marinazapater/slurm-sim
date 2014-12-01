@@ -37,6 +37,7 @@
 #include "src/slurmctld/slurmctld.h"
 
 #include "select_cons_res_ext.h"
+#include "job_test_ext.h"
 
 #define EXTALLOC_TASK_BEGIN 1
 #define EXTALLOC_TASK_END   0

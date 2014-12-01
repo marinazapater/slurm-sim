@@ -3,7 +3,7 @@
  *
  *  $Id: select_cons_res.h,v 1.3 2006/10/31 20:01:38 palermo Exp $
  *****************************************************************************
- *  Copyright (C) 2006 Hewlett-Packard Development Company, L.P.
+ *  Copyright (C) 2006, 2014 Hewlett-Packard Development Company, L.P.
  *  Written by Susanne M. Balle, <susanne.balle@hp.com>
  *  CODE-OCEC-09-009. All rights reserved.
  *
@@ -67,5 +67,11 @@ int cr_job_test(struct job_record *job_ptr, bitstr_t *bitmap,
 		enum node_cr_state job_node_req, uint32_t cr_node_cnt,
 		struct part_res_record *cr_part_ptr,
 		struct node_use_record *node_usage, bitstr_t *exc_core_bitmap);
+
+void _get_res_usage(struct job_record *job_ptr, bitstr_t *node_map,
+			   bitstr_t *core_map, uint32_t cr_node_cnt,
+			   struct node_use_record *node_usage,
+			   uint16_t cr_type, uint16_t **cpu_cnt_ptr, 
+                    bool test_only);
 
 #endif /* !_CR_JOB_TEST_H */
