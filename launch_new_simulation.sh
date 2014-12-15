@@ -16,6 +16,17 @@ if [ $# -eq 1 ] ; then
     fi ;
 fi;
 
+if [ "x$SLURM_ENV" == "x" ]; then
+    echo "Environmental variables not set. Please run shenv in slurm-sim vm";
+    exit -1;
+fi;
+
+./test_env_vars.sh
+if [ "$?" -lt 0 ] ; then
+    echo "Error when testing env variables. Exiting.";
+    exit -1;
+fi;
+
 echo -n "Resetting accounting files... ";
 ./reset.sh
 echo "Done" ;

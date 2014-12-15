@@ -10,4 +10,3 @@ rsync -avP * --exclude=*.sh $SERVER:/$PLUGINPATH ;
 rsync -avP external_allocator.sh $SERVER:/$SIMPATH ;
 rsync -avP dcsim_caller.sh $SERVER:/$SIMPATH ;
 rsync -avP dummy_allocator.sh $SERVER:/$SIMPATH ;
-

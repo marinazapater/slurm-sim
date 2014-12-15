@@ -6,10 +6,14 @@ jobid=$3
 
 SLURM_SUCCESS=0
 SLURM_ERROR=-1
+
 # Previous allocation was filled-in by DCSim in previous iteration
 # (keeps track of all data, and was launched first)
+# needs to be retrieved by this program
 PREVALLOC=/tmp/prev_alloc.txt
-# Current job parameters
+rsync -avP $DCSIMUSER@$DCSIMHOST:$PREVALLOC $PREVALLOC ;
+
+# Current job parameters (this is filled by external allocator scripts)
 CURRJOB=/tmp/param_job_${jobid}.txt
 # Allocation provided by algorithm
 ALLOCOUT=/tmp/alloc_out_${jobid}.txt
@@ -36,8 +40,12 @@ echo "[$newjobpwr]" > $CURRJOB ;
 
 # Calling allocator
 echo "Calling allocator...";
-./dummy_allocator.sh $PREVALLOC $CURRJOB $ALLOCOUT $ALLOCBITMAP ${jobid}
+./dummy_allocator.sh $PREVALLOC $CURRJOB $ALLOCOUT ${jobid}
 rc=$?
+
+#Convert ALLOCOUT into bitmap for slurm
+# node,numcores --> one per line
+cat $ALLOCOUT | sed -e 's#]##g' | sed -e 's#"##g' | awk -F"," '{print $2","$3}' | grep '^s' > $ALLOCBITMAP ;
 
 # Continue slurm-sim execution 
 echo "Signaling continue to slurm-sim";

@@ -19,19 +19,24 @@ CURRJOB=/tmp/param_job_${jobid}.txt
 # Allocation provided by algorithm
 ALLOCOUT=/tmp/alloc_out_${jobid}.txt
 
-SLURMSOCKHOST=localhost
-SLURMSOCKPORT=1234
-
-DCSIMHOST=cronos.lsi.die
-DCSIMPORT=4321
+if [ "x$SLURM_ENV" == "x" ]; then
+    echo "Environmental variables not set. Please run shenv in slurm-sim vm";
+    exit -1;
+fi;
 
 LOG_FILE=/tmp/sim_sbatch-dcsim-caller.log
 echo "`date +\"%Y-%m-%d %H:%M:%S\"` : DCsim caller working" ;
 echo "`date +\"%Y-%m-%d %H:%M:%S\"` : Stopping slurm-sim simulator" ;
 echo "halt" | nc -v -w 0 -u $SLURMSOCKHOST $SLURMSOCKPORT ;  
+
+echo "`date +\"%Y-%m-%d %H:%M:%S\"` : Synching files... (sending allocation to DCsim)";
+rsync $CURRJOB $DCSIMUSER@$DCSIMHOST:$CURRJOB ;
+rsync $ALLOCOUT $DCSIMUSER@$DCSIMHOST:$ALLOCOUT ;
+
 echo "`date +\"%Y-%m-%d %H:%M:%S\"` : Calling dcsim for job $type" ;
-#TODO-marina: need to integrate this with DCsim
-#echo "${type};${jobtime};${jobid}" | nc -v -w 0 -u $DCSIMHOST $DCSIMPORT;
+echo "${type};${jobtime};${jobid}";
+echo "${type};${jobtime};${jobid}" | nc -v -w 0 -u $DCSIMHOST $DCSIMPORT;
+
 sleep 2;
 #TODO-marina: this needs to be implemented!!
 # if [ "$type" == "jobend" ]; then
@@ -43,6 +48,8 @@ sleep 2;
 #         fi;
 #     done ;
 # fi ;
+
+echo "`date +\"%Y-%m-%d %H:%M:%S\"` : Signaling slurm sim to continue";
 echo "continue" | nc -v -w 0 -u $SLURMSOCKHOST $SLURMSOCKPORT ;  
 
 exit $SLURM_SUCCESS ;

@@ -7,6 +7,7 @@ SIMLIBPATH=/home/tester/SIMULATOR/sim_test_dir/slurm/src/simulation_lib/
 echo "Deploying simulator code to $SERVER" ;
 
 rsync -avP launch_new_simulation.sh $SERVER:/$SIMPATH ;
+rsync -avP test_env_vars.sh $SERVER:/$SIMPATH ;
 rsync -avP exec_sim.pl $SERVER:/$SIMPATH ;
 rsync -avP mysql-scripts $SERVER:/$SIMPATH;
 
