@@ -1,0 +1,7 @@
+export SLURM_ENV=1
+export SLURMSOCKHOST="localhost"
+export SLURMSOCKPORT=1234
+
+export DCSIMUSER=marina
+export DCSIMHOST="cronos.lsi.die"
+export DCSIMPORT=4321
