@@ -2043,7 +2043,7 @@ extern int select_p_job_fini(struct job_record *job_ptr)
 {
     //TODO-marina: notify halt to slurm-sim
     // (here we have info on nodes to be deallocated)
-    call_dcsim(job_ptr, NULL, EXTALLOC_TASK_END);
+    call_dcsim(job_ptr, NULL, EXTALLOC_TASK_END, 0);
 	xassert(job_ptr);
 	xassert(job_ptr->magic == JOB_MAGIC);
 

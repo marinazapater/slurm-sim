@@ -166,7 +166,7 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
 }
 
 /* Calls dcsim to compute energy when a task begins (begin=1) or ends (begin=0) */
-uint16_t call_dcsim (struct job_record *job_ptr, bitstr_t *node_map, int begin)
+uint16_t call_dcsim (struct job_record *job_ptr, bitstr_t *node_map, int begin, time_t now)
 {
     //We should somehow give the current time to the simulator...
     char *nodes;
@@ -181,7 +181,7 @@ uint16_t call_dcsim (struct job_record *job_ptr, bitstr_t *node_map, int begin)
     info("external_allocator: job comment %s", job_ptr->comment);
     if (begin == EXTALLOC_TASK_BEGIN){
         printf("New task begun. Calling simulator.\n");
-        sprintf(str, "./dcsim_caller.sh %d %ld jobbegin", job_ptr->job_id, job_ptr->start_time);
+        sprintf(str, "./dcsim_caller.sh %d %ld jobbegin", job_ptr->job_id, now);
     }
     else if (begin == EXTALLOC_TASK_END){
         printf("New task ended. Calling simulator.\n");

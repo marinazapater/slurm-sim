@@ -11,6 +11,7 @@ type=$3
 
 SLURM_SUCCESS=0
 SLURM_ERROR=-1
+
 # Previous allocation was filled-in by DCSim in previous iteration
 # (keeps track of all data, and was launched first)
 PREVALLOC=/tmp/prev_alloc.txt

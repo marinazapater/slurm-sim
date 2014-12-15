@@ -52,6 +52,6 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
                                   uint16_t cr_type, bool test_only);
 
 uint16_t call_dcsim (struct job_record *job_ptr, bitstr_t *node_map,
-                     int begin);
+                     int begin, time_t now);
 
 #endif //_CR_EXTERN_ALLOC_H

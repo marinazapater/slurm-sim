@@ -2426,7 +2426,8 @@ alloc_job:
 	 * - a per-alloc-node cpu_count array
 	 */
     info("Calling DCSim with allocation: selected nodes (bitmap) and free_cores");
-    call_dcsim(job_ptr, bitmap, EXTALLOC_TASK_BEGIN);
+    time_t now = time(NULL);
+    call_dcsim(job_ptr, bitmap, EXTALLOC_TASK_BEGIN, now);
     
 	if ((mode != SELECT_MODE_WILL_RUN) && (job_ptr->part_ptr == NULL))
 		error_code = EINVAL;
