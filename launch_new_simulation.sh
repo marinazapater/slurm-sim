@@ -32,6 +32,8 @@ echo -n "Resetting accounting files... ";
 echo "Done" ;
 echo -n "Deleting old log files...";
 rm /tmp/sim_sbatch-*
+rm /tmp/alloc_*.txt
+rm /tmp/param_*.txt
 echo "Done" ;
 sleep 2 ;
 
@@ -55,5 +57,8 @@ echo "Retrieving accounting results. Storing in results.txt" ;
 
 mysql -u root --password=slurm < ./mysql-scripts/get_simulator_allocation.mysql_script > $allocresults ; 
 mysql -u root --password=slurm < ./mysql-scripts/get_simulator_statistics.mysql_script > $statsresults ; 
+
+echo "Signaling exit";
+echo "exit;" | nc -v -w 0 -u $DCSIMHOST $DCSIMPORT;
 
 echo "Exiting..." ;
