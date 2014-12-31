@@ -53,7 +53,9 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
     nodes = bitmap2node_name(node_map);
     info("external_allocator: non-free nodes %s", nodes);
     info("external_allocator: job comment %s", job_ptr->comment);
-    sprintf(str, "./external_allocator.sh %s %s %d", nodes, job_ptr->comment, job_ptr->job_id);
+    info("external_allocator: requested cpus %d", job_ptr->details->cpus_per_task);
+    sprintf(str, "./external_allocator.sh %s %s %d %d", nodes, job_ptr->comment,
+            job_ptr->job_id, job_ptr->details->cpus_per_task);
     rc = system(str);
 
     //XXX-marina: need to retrieve allocation data and convert to bitmap!!

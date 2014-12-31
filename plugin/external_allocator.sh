@@ -3,6 +3,7 @@
 nonfree=$1
 newjobpwr=$2
 jobid=$3
+numcpus=$4
 
 SLURM_SUCCESS=0
 SLURM_ERROR=-1
@@ -23,7 +24,8 @@ SOCKHOST=localhost
 SOCKPORT=1234
 #LOG_FILE=/tmp/sim_sbatch-ext-alloc.log
 
-POLICY="slurm_default"
+##FIXME: this should be given as an environmental variable
+POLICY="greedy"
 
 # MAIN program execution
 #-----------------------
@@ -36,11 +38,21 @@ echo "`date +\"%Y-%m-%d %H:%M:%S\"` : $0 : JobId: $3";
 
 #Halt slurm-sim execution
 echo "halt" | nc -v -w 0 -u $SOCKHOST $SOCKPORT ;  
-echo "[$newjobpwr]" > $CURRJOB ;
+echo "[$numcpus,$newjobpwr]" > $CURRJOB ;
 
 # Calling allocator
-echo "Calling allocator...";
-./dummy_allocator.sh $PREVALLOC $CURRJOB $ALLOCOUT ${jobid}
+echo -n "Calling allocator...";
+if [ "$POLICY" == "dummy" ] ; then
+    echo " dummy allocator.";
+    ./dummy_allocator.sh $PREVALLOC $CURRJOB $ALLOCOUT ${jobid} ;
+elif [ "$POLICY" == "greedy" ] ; then
+    echo " greedy allocator.";
+    ./greedy_allocator.py $PREVALLOC $CURRJOB $ALLOCOUT ;
+else
+    echo " faulty allocator.";
+    ./faulty_allocator.sh ;
+fi;
+
 rc=$?
 
 #Convert ALLOCOUT into bitmap for slurm
