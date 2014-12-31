@@ -38,7 +38,7 @@ echo "`date +\"%Y-%m-%d %H:%M:%S\"` : Calling dcsim for job $type" ;
 echo "${type};${jobtime};${jobid}";
 echo "${type};${jobtime};${jobid}" | nc -v -w 0 -u $DCSIMHOST $DCSIMPORT;
 
-sleep 2;
+sleep 1;
 #TODO-marina: this needs to be implemented!!
 # if [ "$type" == "jobend" ]; then
 #     echo "Job $jobid requires cleanup. Will wait for completion";
