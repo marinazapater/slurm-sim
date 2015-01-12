@@ -7,7 +7,7 @@ PLUGINPATH=$SIMPATH/slurm/src/plugins/
 echo "Deploying plugin code to $SERVER" ;
 
 rsync -avP * --exclude=*.sh $SERVER:/$PLUGINPATH ;
-rsync -avP *_allocator.sh $SERVER:/$SIMPATH ;
-rsync -avP *_allocator.py $SERVER:/$SIMPATH ;
-rsync -avP dcsim_caller.sh $SERVER:/$SIMPATH ;
+rsync -avP scripts/*.sh $SERVER:/$SIMPATH ;
+rsync -avP scripts/*.py $SERVER:/$SIMPATH ;
+rsync -avP data/*.txt $SERVER:/$SIMPATH ;
 
