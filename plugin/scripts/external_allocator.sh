@@ -25,7 +25,7 @@ SOCKPORT=1234
 #LOG_FILE=/tmp/sim_sbatch-ext-alloc.log
 
 ##FIXME: this should be given as an environmental variable
-POLICY="greedy"
+POLICY="faulty"
 
 # MAIN program execution
 #-----------------------
@@ -57,7 +57,9 @@ rc=$?
 
 #Convert ALLOCOUT into bitmap for slurm
 # node,numcores --> one per line
-cat $ALLOCOUT | sed -e 's#]##g' | sed -e 's#"##g' | awk -F"," '{print $2","$3}' | grep '^s' > $ALLOCBITMAP ;
+if [[ $rc == $SLURM_SUCCESS ]] ; then
+    cat $ALLOCOUT | sed -e 's#]##g' | sed -e 's#"##g' | awk -F"," '{print $2","$3}' | grep '^s' > $ALLOCBITMAP ;
+fi;
 
 # Continue slurm-sim execution 
 echo "Signaling continue to slurm-sim";

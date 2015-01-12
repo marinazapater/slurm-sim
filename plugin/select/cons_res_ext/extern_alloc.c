@@ -167,6 +167,37 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
     return cpus;
 }
 
+/* Calls to print_slurm_alloc generates a file:
+   /tmp/alloc_out_{jobid}.txt where allocation is printed
+   (so that it can be rsynced to dcsim)
+ */
+void print_slurm_alloc (struct job_record *job_ptr, bitstr_t *node_map,
+                        uint16_t *cpu_cnt, uint32_t cr_node_cnt)
+{
+    int i=0;
+    char *nodes;
+    char cpus[500];
+    cpus[0]='\0';
+    char str[1000];
+    nodes = bitmap2node_name(node_map);
+    info(" const_res_ext: printing slurm allocation to file for %d nodes", cr_node_cnt);
+    for (i=0; i< cr_node_cnt; i++){
+        if (cpu_cnt[i]>0){
+            info("cpu_cnt for node %d is greater than 0: %d",i,cpu_cnt[i]);
+            char num[10];
+            num[0]='\0';
+            sprintf(num, "%d", (int) cpu_cnt[i]);
+            strcat(cpus, num);
+            //I break because I am only prepared for 1 node
+            break;
+        }
+    }
+    info(" const_res_ext: nodes are %s and cpus %s", nodes, cpus);
+    sprintf(str, "./slurm_alloc_gen.sh %d %s %s", job_ptr->job_id, nodes, cpus);
+    system(str);
+    xfree(nodes);
+}
+
 /* Calls dcsim to compute energy when a task begins (begin=1) or ends (begin=0) */
 uint16_t call_dcsim (struct job_record *job_ptr, bitstr_t *node_map, int begin, time_t now)
 {
@@ -194,6 +225,7 @@ uint16_t call_dcsim (struct job_record *job_ptr, bitstr_t *node_map, int begin, 
         return 1;
     }
     rc = system(str);
+    xfree(nodes);
     return rc;
 }
 

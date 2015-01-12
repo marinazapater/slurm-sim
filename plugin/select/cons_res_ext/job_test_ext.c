@@ -2168,12 +2168,14 @@ extern int cr_job_test(struct job_record *job_ptr, bitstr_t *bitmap,
     // I am calling external allocator here
     // (before going for cons_res regular allocation)
     // In case it fails, I'll use cons_res
+    int slurmAlloc = 0;
     info(" cons_res_ext: cr_job_test: calling external allocator");
     cpu_count = external_allocator (job_ptr, min_nodes, max_nodes, req_nodes,
                                     bitmap, cr_node_cnt, free_cores,
                                     node_usage, cr_type, test_only);
     if ((cpu_count) && (job_ptr->best_switch)) {
 		/* External allocator found a good job fit! We're done. */
+        info (" cons_rest_ext: external allocator found a good fit");
 		if (select_debug_flags & DEBUG_FLAG_CPU_BIND) {
 			info(" cons_res_ext: cr_job_test: test 1 pass - "
 			     "idle resources found");
@@ -2182,6 +2184,7 @@ extern int cr_job_test(struct job_record *job_ptr, bitstr_t *bitmap,
 	}
     
     info("  const_res_ext: cr_job_test: external allocator failed --> Step1 of cons_res alloc");
+    slurmAlloc=1;
 	cpu_count = _select_nodes(job_ptr, min_nodes, max_nodes, req_nodes,
 				  bitmap, cr_node_cnt, free_cores,
 				  node_usage, cr_type, test_only);
@@ -2395,7 +2398,7 @@ extern int cr_job_test(struct job_record *job_ptr, bitstr_t *bitmap,
 	 * optimizes "job overlap" between this job (in these idle nodes)
 	 * and existing jobs in the other partitions with <= priority to
 	 * this partition */
-
+    
 alloc_job:
 	/* at this point we've found a good set of
 	 * bits to allocate to this job:
@@ -2407,6 +2410,11 @@ alloc_job:
 	 * create the job_resources struct,
 	 * distribute the job on the bits, and exit
 	 */
+    if (slurmAlloc){
+        info (" cons_res_ext: SLURM found a default allocation. Will print it" );
+        print_slurm_alloc(job_ptr, bitmap, cpu_count, cr_node_cnt);
+    }
+    
 	FREE_NULL_BITMAP(orig_map);
 	FREE_NULL_BITMAP(avail_cores);
 	FREE_NULL_BITMAP(tmpcore);

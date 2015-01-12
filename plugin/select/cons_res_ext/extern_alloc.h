@@ -51,6 +51,9 @@ uint16_t *external_allocator (struct job_record *job_ptr, uint32_t min_nodes,
                                   struct node_use_record *node_usage,
                                   uint16_t cr_type, bool test_only);
 
+void print_slurm_alloc (struct job_record *job_ptr, bitstr_t *node_map,
+                        uint16_t *cpu_cnt, uint32_t cr_node_cnt);
+    
 uint16_t call_dcsim (struct job_record *job_ptr, bitstr_t *node_map,
                      int begin, time_t now);
 
