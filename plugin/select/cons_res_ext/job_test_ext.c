@@ -2433,9 +2433,6 @@ alloc_job:
 	 * - a free_cores bitmap of usable cores on each selected node
 	 * - a per-alloc-node cpu_count array
 	 */
-    info("Calling DCSim with allocation: selected nodes (bitmap) and free_cores");
-    time_t now = time(NULL);
-    call_dcsim(job_ptr, bitmap, EXTALLOC_TASK_BEGIN, now);
     
 	if ((mode != SELECT_MODE_WILL_RUN) && (job_ptr->part_ptr == NULL))
 		error_code = EINVAL;
@@ -2488,6 +2485,11 @@ alloc_job:
 		FREE_NULL_BITMAP(free_cores);
 		return error_code;
 	}
+
+    //Calling DCsim in case allocation was succesful!
+    info("Calling DCSim with allocation: selected nodes (bitmap) and free_cores");
+    time_t now = time(NULL);
+    call_dcsim(job_ptr, bitmap, EXTALLOC_TASK_BEGIN, now);        
 
 	/* sync up cpus with layout_ptr, total up
 	 * all cpus, and load the core_bitmap */
@@ -2583,5 +2585,6 @@ alloc_job:
 			job_res->memory_allocated[i] = save_mem;
 		}
 	}
+   
 	return error_code;
 }

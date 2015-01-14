@@ -19,6 +19,9 @@ PREVALLOC=/tmp/prev_alloc.txt
 CURRJOB=/tmp/param_job_${jobid}.txt
 # Allocation provided by algorithm
 ALLOCOUT=/tmp/alloc_out_${jobid}.txt
+# File that logs the beginning and ending of jobs
+JOBLOGGER=/tmp/joblogger.txt
+
 
 if [ "x$SLURM_ENV" == "x" ]; then
     echo "Environmental variables not set. Please run shenv in slurm-sim vm";
@@ -36,19 +39,22 @@ rsync $ALLOCOUT $DCSIMUSER@$DCSIMHOST:$ALLOCOUT ;
 
 echo "`date +\"%Y-%m-%d %H:%M:%S\"` : Calling dcsim for job $type" ;
 echo "${type};${jobtime};${jobid}";
+echo "${type};${jobtime};${jobid}" >> $JOBLOGGER ;
 echo "${type};${jobtime};${jobid}" | nc -v -w 0 -u $DCSIMHOST $DCSIMPORT;
 
 sleep 1;
 #TODO-marina: this needs to be implemented!!
-# if [ "$type" == "jobend" ]; then
-#     echo "Job $jobid requires cleanup. Will wait for completion";
-#     end=0
-#     while [ $end -eq 0 ] ; do
-#         if cat $CURRJOB | grep 'done' ; then
+if [ "$type" == "jobend" ]; then
+    # echo "Job $jobid requires cleanup. Will wait for completion";
+    # end=0
+    # while [ $end -eq 0 ] ; do
+    #     if cat $CURRJOB | grep 'done' ; then
             
-#         fi;
-#     done ;
-# fi ;
+    #     fi;
+    # done ;
+    rm $CURRJOB ; 
+    rm $ALLOCOUT ;
+fi ;
 
 echo "`date +\"%Y-%m-%d %H:%M:%S\"` : Signaling slurm sim to continue";
 echo "continue" | nc -v -w 0 -u $SLURMSOCKHOST $SLURMSOCKPORT ;  

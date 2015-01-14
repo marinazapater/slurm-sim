@@ -48,7 +48,7 @@
 #include "comm_protocol.h"
 
 //XXX-marina: this was set to 50 at the beginning
-#define MAX_INDEPENDENT_THREADS 500
+#define MAX_INDEPENDENT_THREADS 2000
 
 #define MONITOR_INTERVAL 300
 

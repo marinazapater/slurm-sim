@@ -12,6 +12,10 @@
 
 #include <pthread.h>
 
+//XXX-marina: careful! If you're to increase MAX_THREADS, beware that
+// some off the definitions below will need to be changed too
+// (however, I dunno how)
+// If you try to change MAX_THREADS only, then the simulator won't work
 #define MAX_THREADS 64
 
 #define SLURM_SIM_SHM "/tester_slurm_sim.shm"
