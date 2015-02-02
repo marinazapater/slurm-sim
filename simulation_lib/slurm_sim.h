@@ -1,4 +1,3 @@
-
 /*
 ########################################################################
 #  THIS FILE IS AUTOMATICALLY CREATED BY slurm_sim.pl when             #
@@ -12,7 +11,7 @@
 
 #include <pthread.h>
 
-//XXX-marina: careful! If you're to increase MAX_THREADS, beware that
+//XXX-marina: careful! If you're to increase max_threads, beware that
 // some off the definitions below will need to be changed too
 // (however, I dunno how)
 // If you try to change MAX_THREADS only, then the simulator won't work
