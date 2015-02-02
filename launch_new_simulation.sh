@@ -27,6 +27,8 @@ if [ "$?" -lt 0 ] ; then
     exit -1;
 fi;
 
+echo "`date +\"%Y-%m-%d %H:%M:%S\"`: Starting simulation";
+begintime=`date +%s`
 echo -n "Resetting accounting files... ";
 ./reset.sh
 echo "Done" ;
@@ -34,6 +36,7 @@ echo -n "Deleting old log files...";
 rm /tmp/sim_sbatch-*
 rm /tmp/alloc_*.txt
 rm /tmp/param_*.txt
+echo -n "" > /tmp/joblogger.txt ;
 echo "Done" ;
 sleep 2 ;
 
@@ -61,4 +64,9 @@ mysql -u root --password=slurm < ./mysql-scripts/get_simulator_statistics.mysql_
 echo "Signaling exit";
 echo "exit;" | nc -v -w 0 -u $DCSIMHOST $DCSIMPORT;
 
+endtime=`date +%s`
+tdiff=$(( $endtime - $begintime ))
+echo "`date +\"%Y-%m-%d %H:%M:%S\"`: Simulation ended.";
+echo "Time elapsed: $tdiff secs";
 echo "Exiting..." ;
+
