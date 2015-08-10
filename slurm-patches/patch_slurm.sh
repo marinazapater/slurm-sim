@@ -57,7 +57,7 @@ echo "--- Patching slurm/src/slurmctld/node_scheduler.c"
 patch ../slurm/src/slurmctld/node_scheduler.c -i ./node_scheduler.c.patch ;
 
 echo "--- Patching slurm/src/slurmctld/proc_req.c"
-patch ../slurm/src/slurmctld/proc_req.c -i ./slumctld_proc_req.c.patch ;
+patch ../slurm/src/slurmctld/proc_req.c -i ./slurmctld_proc_req.c.patch ;
 
 echo "--- Patching slurm/src/slurmd/slurmd/req.c"
 patch ../slurm/src/slurmd/slurmd/req.c -i ./req.c.patch ;
